@@ -8,6 +8,13 @@ executor_test = executable(
 )
 test('check execution authority', executor_test)
 
+session_test = executable(
+  'session-test',
+  'session_test.cpp',
+  dependencies: libpkgcheck_exec_dep
+)
+test('check session admission', session_test)
+
 headers_test = executable(
   'public-headers-test',
   'public_headers.cpp',
