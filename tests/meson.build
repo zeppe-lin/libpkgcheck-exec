@@ -24,8 +24,8 @@ test('public headers', headers_test)
 
 test('authority contract',
   find_program('check_authority_contract.sh'),
-  args:[meson.project_source_root()])
+  args:[meson.project_source_root(), meson.project_version()])
 
 test('release metadata',
   find_program('check_release_metadata.sh'),
-  args:[meson.project_source_root()])
+  args:[meson.project_source_root(), meson.project_version()])

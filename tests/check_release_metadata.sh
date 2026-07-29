@@ -4,7 +4,11 @@
 
 set -eu
 root=${1:?}
-grep -q "version: '0.1.0'" "$root/meson.build"
-grep -q "soversion: '0'" "$root/src/meson.build"
-grep -q "libpkgcheck >= 0.1.0" "$root/src/meson.build"
-grep -q "libpkgexec >= 1.3.0" "$root/src/meson.build"
+version=${2:?}
+
+grep -Fq "version: '$version'" "$root/meson.build"
+grep -Fq "soversion: '0'" "$root/src/meson.build"
+grep -Fq "libpkgcheck >= 0.1.0" "$root/src/meson.build"
+grep -Fq "libpkgexec >= 1.3.0" "$root/src/meson.build"
+grep -Fq "args:[meson.project_source_root(), meson.project_version()]" \
+  "$root/tests/meson.build"
