@@ -1,0 +1,19 @@
+LIBPKGCHECK-EXEC(7)
+
+# NAME
+
+libpkgcheck-exec - native check execution adapter
+
+# DESCRIPTION
+
+*libpkgcheck-exec* admits concrete source, built-package, check-input, root-view,
+and temporary trees for one sealed *libpkgcheck* request. It translates the
+source-owned check program into a backend-neutral *libpkgexec* request with
+purpose *check*, invokes one backend, and seals terminal *libpkgcheck* evidence.
+
+The library does not unpack artifacts, perform process syscalls, schedule
+transaction nodes, or publish controller progression.
+
+# SEE ALSO
+
+*libpkgcheck*(3), *libpkgexec*(3)
