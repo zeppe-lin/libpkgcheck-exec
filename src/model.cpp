@@ -8,28 +8,54 @@
 #include <algorithm>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace pkgcheck_exec {
 namespace fs = std::filesystem;
 namespace {
 
-fs::path require_absolute_path(fs::path path, const char* description)
+fs::path require_absolute_path(fs::path path,
+                               const char* description,
+                               bool root_allowed = false)
 {
   if (path.empty() || !path.is_absolute())
     throw error(error_code::invalid_path,
                 std::string(description) + " must be absolute");
-  return path.lexically_normal();
+
+  path = path.lexically_normal();
+  if (!root_allowed && path == path.root_path())
+    throw error(error_code::invalid_path,
+                std::string(description) + " must not be the filesystem root");
+  return path;
 }
 
-void normalize_paths(source_tree& source,
-                     checked_package_tree& package,
-                     session_paths& paths)
+bool path_prefix(const fs::path& prefix, const fs::path& value)
+{
+  auto prefix_component = prefix.begin();
+  auto value_component = value.begin();
+  while (prefix_component != prefix.end() && value_component != value.end()) {
+    if (*prefix_component != *value_component)
+      return false;
+    ++prefix_component;
+    ++value_component;
+  }
+  return prefix_component == prefix.end();
+}
+
+bool paths_overlap(const fs::path& lhs, const fs::path& rhs)
+{
+  return path_prefix(lhs, rhs) || path_prefix(rhs, lhs);
+}
+
+void normalize_primary_paths(source_tree& source,
+                             checked_package_tree& package,
+                             session_paths& paths)
 {
   source.path = require_absolute_path(std::move(source.path), "source tree");
   package.path = require_absolute_path(std::move(package.path),
                                        "checked package tree");
   paths.root_view_path = require_absolute_path(
-      std::move(paths.root_view_path), "root view");
+      std::move(paths.root_view_path), "root view", true);
   paths.temporary_root = require_absolute_path(
       std::move(paths.temporary_root), "temporary root");
 }
@@ -52,35 +78,111 @@ void require_package_authority(const pkgcheck::check_request& request,
                 "build artifact");
 }
 
-void normalize_and_validate_inputs(
+std::vector<package_input_tree> normalize_and_validate_inputs(
     const pkgcheck::check_request& request,
-    std::vector<package_input_tree>& inputs)
+    std::vector<package_input_tree> supplied)
 {
-  std::sort(inputs.begin(), inputs.end(),
+  for (auto& input : supplied)
+    input.path = require_absolute_path(std::move(input.path),
+                                       "check input tree");
+
+  std::sort(supplied.begin(), supplied.end(),
             [](const auto& lhs, const auto& rhs) {
               return lhs.input < rhs.input;
             });
 
-  for (std::size_t index = 1; index < inputs.size(); ++index) {
-    if (inputs[index - 1].input == inputs[index].input)
+  for (std::size_t index = 1; index < supplied.size(); ++index) {
+    if (supplied[index - 1].input == supplied[index].input)
       throw error(error_code::duplicate_input,
-                  "duplicate check input tree");
+                  "duplicate check input tree authority");
   }
 
   const auto& expected = request.inputs().inputs();
-  if (inputs.size() != expected.size())
+  if (supplied.size() != expected.size())
     throw error(error_code::missing_input,
                 "check input tree set is incomplete");
 
-  for (std::size_t index = 0; index < inputs.size(); ++index) {
-    auto& input = inputs[index];
-    input.path = require_absolute_path(std::move(input.path),
-                                       "check input tree");
+  std::vector<package_input_tree> normalized;
+  normalized.reserve(expected.size());
+  for (const auto& authority : expected) {
+    const auto& identity = authority.resolved().identity();
+    const auto found = std::lower_bound(
+        supplied.begin(), supplied.end(), identity,
+        [](const package_input_tree& value, const auto& key) {
+          return value.input < key;
+        });
 
-    if (input.input != expected[index].resolved().identity() ||
-        input.tree != expected[index].tree())
+    if (found == supplied.end() || found->input != identity)
+      throw error(error_code::missing_input,
+                  "sealed check input tree authority is missing");
+    if (found->tree != authority.tree())
       throw error(error_code::inconsistent_authority,
                   "check input tree does not match the sealed request");
+
+    normalized.push_back(*found);
+  }
+  return normalized;
+}
+
+void normalize_execution_identity(execution_identity& identity)
+{
+  auto& groups = identity.supplementary_groups;
+  std::sort(groups.begin(), groups.end());
+  if (std::adjacent_find(groups.begin(), groups.end()) != groups.end())
+    throw error(error_code::invalid_session,
+                "supplementary credential groups must be unique");
+  if (std::binary_search(groups.begin(), groups.end(), identity.group_id))
+    throw error(error_code::invalid_session,
+                "primary group must not be repeated as a supplementary group");
+}
+
+struct concrete_path final {
+  const char* description;
+  fs::path path;
+};
+
+void require_unique_resource_identities(
+    const source_tree& source,
+    const checked_package_tree& package,
+    const std::vector<package_input_tree>& inputs)
+{
+  std::vector<pkgexec::resource_identity> identities;
+  identities.reserve(inputs.size() + 2);
+  identities.push_back(source.tree);
+  identities.push_back(package.tree);
+  for (const auto& input : inputs)
+    identities.push_back(input.resource);
+
+  std::sort(identities.begin(), identities.end());
+  if (std::adjacent_find(identities.begin(), identities.end()) !=
+      identities.end())
+    throw error(error_code::invalid_session,
+                "distinct check resources share one concrete identity");
+}
+
+void require_disjoint_resource_paths(
+    const source_tree& source,
+    const checked_package_tree& package,
+    const std::vector<package_input_tree>& inputs,
+    const session_paths& paths)
+{
+  std::vector<concrete_path> resources;
+  resources.reserve(inputs.size() + 3);
+  resources.push_back({"source tree", source.path});
+  resources.push_back({"checked package tree", package.path});
+  for (const auto& input : inputs)
+    resources.push_back({"check input tree", input.path});
+  resources.push_back({"temporary root", paths.temporary_root});
+
+  for (std::size_t lhs = 0; lhs < resources.size(); ++lhs) {
+    for (std::size_t rhs = lhs + 1; rhs < resources.size(); ++rhs) {
+      if (paths_overlap(resources[lhs].path, resources[rhs].path)) {
+        throw error(
+            error_code::invalid_path,
+            std::string(resources[lhs].description) + " path overlaps " +
+                resources[rhs].description + " path");
+      }
+    }
   }
 }
 
@@ -110,10 +212,14 @@ admitted_check_session admitted_check_session::admit(
     execution_identity identity,
     pkgexec::resource_limits limits)
 {
-  normalize_paths(source, package, paths);
+  normalize_primary_paths(source, package, paths);
   require_source_authority(request, source);
   require_package_authority(request, package);
-  normalize_and_validate_inputs(request, inputs);
+  inputs = normalize_and_validate_inputs(request, std::move(inputs));
+  normalize_execution_identity(identity);
+
+  require_unique_resource_identities(source, package, inputs);
+  require_disjoint_resource_paths(source, package, inputs, paths);
 
   return admitted_check_session(
       std::move(request), std::move(source), std::move(package),

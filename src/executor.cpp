@@ -162,6 +162,22 @@ pkgcheck::check_result map_check_result(
       failure_evidence_identity(execution));
 }
 
+pkgexec::backend_capability_profile backend_capabilities(
+    pkgexec::execution_backend& backend)
+{
+  try {
+    return backend.capabilities();
+  } catch (const std::exception& exception) {
+    throw error(
+        error_code::backend_contract_violation,
+        std::string("execution backend could not report capabilities: ") +
+            exception.what());
+  } catch (...) {
+    throw error(error_code::backend_contract_violation,
+                "execution backend threw non-standard capability evidence");
+  }
+}
+
 pkgexec::execution_result invoke_backend(
     pkgexec::execution_backend& backend,
     const prepared_execution& prepared)
@@ -173,6 +189,24 @@ pkgexec::execution_result invoke_backend(
         error_code::backend_contract_violation,
         std::string("execution backend threw instead of returning evidence: ") +
             exception.what());
+  } catch (...) {
+    throw error(error_code::backend_contract_violation,
+                "execution backend threw non-standard execution evidence");
+  }
+}
+
+void require_temporary_resource_unique(
+    const admitted_check_session& session,
+    const pkgexec::resource_identity& temporary)
+{
+  if (temporary == session.source().tree ||
+      temporary == session.package().tree)
+    throw error(error_code::invalid_session,
+                "temporary resource aliases an admitted read-only resource");
+  for (const auto& input : session.inputs()) {
+    if (temporary == input.resource)
+      throw error(error_code::invalid_session,
+                  "temporary resource aliases an admitted check input");
   }
 }
 
@@ -189,6 +223,10 @@ prepared_execution prepare(const admitted_check_session& session)
   const auto temporary_slot = resource_slot::singleton(
       resource_role::private_temporary_root);
 
+  const auto temporary_resource =
+      temporary_resource_identity(session.request());
+  require_temporary_resource_unique(session, temporary_resource);
+
   std::vector<resource_binding> bindings;
   bindings.emplace_back(
       source_slot,
@@ -202,7 +240,7 @@ prepared_execution prepare(const admitted_check_session& session)
       logical_path::parse(package_path));
   bindings.emplace_back(
       temporary_slot,
-      temporary_resource_identity(session.request()),
+      temporary_resource,
       resource_access::writable,
       logical_path::parse(temporary_path));
 
@@ -252,11 +290,15 @@ check_execution_result execute(const admitted_check_session& session,
                                pkgexec::execution_backend& backend)
 {
   auto prepared = prepare(session);
+  const auto advertised_backend = backend_capabilities(backend);
   auto execution = invoke_backend(backend, prepared);
 
   if (execution.request() != prepared.request)
     throw error(error_code::backend_contract_violation,
                 "execution backend returned evidence for another request");
+  if (execution.backend() != advertised_backend)
+    throw error(error_code::backend_contract_violation,
+                "execution backend returned evidence for another backend profile");
 
   auto check = map_check_result(session, execution);
   return check_execution_result(std::move(execution), std::move(check));
