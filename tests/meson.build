@@ -1,0 +1,6 @@
+executor_test = executable('executor-test','executor_test.cpp',dependencies: libpkgcheck_exec_dep)
+test('check execution authority',executor_test)
+headers_test = executable('public-headers-test','public_headers.cpp',dependencies: libpkgcheck_exec_dep)
+test('public headers',headers_test)
+test('authority contract',find_program('check_authority_contract.sh'),args:[meson.project_source_root()])
+test('release metadata',find_program('check_release_metadata.sh'),args:[meson.project_source_root()])
