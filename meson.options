@@ -1,0 +1,3 @@
+option('link_mode', type: 'combo', choices: ['shared', 'static'], value: 'shared', description: 'Select dependency linkage mode')
+option('tests', type: 'feature', value: 'enabled', description: 'Build adapter tests')
+option('man_pages', type: 'feature', value: 'auto', description: 'Build manual pages with scdoc')
