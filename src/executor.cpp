@@ -1,28 +1,265 @@
+// SPDX-FileCopyrightText: 2026 Alexandr Savca
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include <libpkgcheck-exec/executor.h>
+
 #include <libpkgcheck-exec/error.h>
+
 #include <openssl/evp.h>
+
 #include <array>
+#include <exception>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
-namespace pkgcheck_exec { namespace {
-std::string hash(std::string material){ auto c=std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)>(EVP_MD_CTX_new(),EVP_MD_CTX_free); if(!c||EVP_DigestInit_ex(c.get(),EVP_sha256(),nullptr)!=1||EVP_DigestUpdate(c.get(),material.data(),material.size())!=1) throw error(error_code::identity_failed,"cannot hash execution evidence"); std::array<unsigned char,32> b{}; unsigned n=0; if(EVP_DigestFinal_ex(c.get(),b.data(),&n)!=1||n!=32) throw error(error_code::identity_failed,"cannot finalize execution evidence"); static constexpr char h[]="0123456789abcdef"; std::string out(64,'0'); for(unsigned i=0;i<32;++i){out[2*i]=h[b[i]>>4];out[2*i+1]=h[b[i]&15];} return out; }
-pkgcheck::check_failure_kind classify(const pkgexec::execution_result& e){ if(e.failure()&&*e.failure()==pkgexec::execution_failure_kind::cancelled) return pkgcheck::check_failure_kind::cancelled; if(e.start_state()==pkgexec::execution_start_state::not_started) return pkgcheck::check_failure_kind::execution_unavailable; return pkgcheck::check_failure_kind::program_failed; }
+#include <vector>
+
+namespace pkgcheck_exec {
+namespace {
+
+constexpr std::string_view source_path = "/check/source";
+constexpr std::string_view package_path = "/check/package";
+constexpr std::string_view input_path_prefix = "/check/inputs/";
+constexpr std::string_view temporary_path = "/tmp";
+constexpr std::string_view home_path = "/tmp/home";
+
+std::string sha256_hex(std::string_view material)
+{
+  using context_pointer =
+      std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)>;
+
+  context_pointer context(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+  if (!context ||
+      EVP_DigestInit_ex(context.get(), EVP_sha256(), nullptr) != 1 ||
+      EVP_DigestUpdate(context.get(), material.data(), material.size()) != 1)
+    throw error(error_code::identity_failed,
+                "cannot hash execution evidence");
+
+  std::array<unsigned char, 32> digest{};
+  unsigned int digest_size = 0;
+  if (EVP_DigestFinal_ex(context.get(), digest.data(), &digest_size) != 1 ||
+      digest_size != digest.size())
+    throw error(error_code::identity_failed,
+                "cannot finalize execution evidence");
+
+  static constexpr char digits[] = "0123456789abcdef";
+  std::string result(digest.size() * 2, '0');
+  for (std::size_t index = 0; index < digest.size(); ++index) {
+    result[index * 2] = digits[digest[index] >> 4];
+    result[index * 2 + 1] = digits[digest[index] & 0x0f];
+  }
+  return result;
 }
-prepared_execution prepare(const admitted_check_session& s){
+
+std::string identity_material(std::string_view domain,
+                              std::string_view authority)
+{
+  std::string material;
+  material.reserve(domain.size() + authority.size());
+  material.append(domain);
+  material.append(authority);
+  return material;
+}
+
+pkgexec::resource_identity temporary_resource_identity(
+    const pkgcheck::check_request& request)
+{
+  const auto material = identity_material(
+      "pkgcheck-exec/temp/v1", request.identity().hex());
+  return pkgexec::resource_identity::from_sha256(sha256_hex(material));
+}
+
+pkgcheck::check_execution_evidence_identity execution_evidence_identity(
+    const pkgexec::execution_result& execution)
+{
+  const auto material = identity_material(
+      "pkgcheck/execution-evidence/v1", execution.identity().hex());
+  return pkgcheck::check_execution_evidence_identity::from_sha256(
+      sha256_hex(material));
+}
+
+pkgcheck::check_failure_evidence_identity failure_evidence_identity(
+    const pkgexec::execution_result& execution)
+{
+  const auto material = identity_material(
+      "pkgcheck/failure-evidence/v1", execution.identity().hex());
+  return pkgcheck::check_failure_evidence_identity::from_sha256(
+      sha256_hex(material));
+}
+
+pkgcheck::check_failure_kind classify_failure(
+    const pkgexec::execution_result& execution)
+{
+  if (execution.failure() &&
+      *execution.failure() == pkgexec::execution_failure_kind::cancelled)
+    return pkgcheck::check_failure_kind::cancelled;
+
+  if (execution.start_state() ==
+      pkgexec::execution_start_state::not_started)
+    return pkgcheck::check_failure_kind::execution_unavailable;
+
+  return pkgcheck::check_failure_kind::program_failed;
+}
+
+std::vector<pkgexec::environment_variable> environment_variables(
+    const admitted_check_session& session)
+{
+  std::vector<pkgexec::environment_variable> variables;
+  variables.emplace_back(
+      "ZEPPE_LIN_CHECK_PACKAGE",
+      session.request().check_node().package().name());
+  variables.emplace_back("ZEPPE_LIN_CHECK_SOURCE",
+                         std::string(source_path));
+  variables.emplace_back("ZEPPE_LIN_CHECK_ROOT",
+                         std::string(package_path));
+  return variables;
+}
+
+pkgexec::environment_policy environment_for(
+    const admitted_check_session& session)
+{
   using namespace pkgexec;
+
+  return environment_policy::hermetic(
+      {logical_path::parse("/usr/bin"), logical_path::parse("/bin")},
+      logical_path::parse(home_path),
+      logical_path::parse(temporary_path),
+      1,
+      0022,
+      std::nullopt,
+      network_policy::denied,
+      stdin_policy::closed,
+      stream_policy::capture_complete,
+      stream_policy::capture_complete,
+      environment_variables(session));
+}
+
+pkgexec::credential_policy credentials_for(
+    const admitted_check_session& session)
+{
+  const auto& identity = session.identity();
+  return pkgexec::credential_policy::fixed(
+      identity.user_id,
+      identity.group_id,
+      identity.supplementary_groups,
+      true);
+}
+
+pkgcheck::check_result map_check_result(
+    const admitted_check_session& session,
+    const pkgexec::execution_result& execution)
+{
+  auto evidence = execution_evidence_identity(execution);
+  if (execution.status() == pkgexec::execution_status::succeeded)
+    return pkgcheck::check_result::passed(session.request(),
+                                          std::move(evidence));
+
+  return pkgcheck::check_result::failed(
+      session.request(),
+      std::move(evidence),
+      classify_failure(execution),
+      failure_evidence_identity(execution));
+}
+
+pkgexec::execution_result invoke_backend(
+    pkgexec::execution_backend& backend,
+    const prepared_execution& prepared)
+{
+  try {
+    return backend.execute(prepared.request, prepared.resources);
+  } catch (const std::exception& exception) {
+    throw error(
+        error_code::backend_contract_violation,
+        std::string("execution backend threw instead of returning evidence: ") +
+            exception.what());
+  }
+}
+
+} // namespace
+
+prepared_execution prepare(const admitted_check_session& session)
+{
+  using namespace pkgexec;
+
+  const auto source_slot = resource_slot::named(
+      resource_role::source_tree, "checked-source");
+  const auto package_slot = resource_slot::named(
+      resource_role::build_input_tree, "checked-package");
+  const auto temporary_slot = resource_slot::singleton(
+      resource_role::private_temporary_root);
+
   std::vector<resource_binding> bindings;
-  const auto source_slot=resource_slot::named(resource_role::source_tree,"checked-source"), package_slot=resource_slot::named(resource_role::build_input_tree,"checked-package"), temp_slot=resource_slot::singleton(resource_role::private_temporary_root);
-  bindings.emplace_back(source_slot,s.source().tree,resource_access::read_only,logical_path::parse("/check/source"));
-  bindings.emplace_back(package_slot,s.package().tree,resource_access::read_only,logical_path::parse("/check/package"));
-  bindings.emplace_back(temp_slot,resource_identity::from_sha256(hash("pkgcheck-exec/temp/v1\0"+s.request().identity().hex())),resource_access::writable,logical_path::parse("/tmp"));
-  for(const auto& input:s.inputs()) bindings.emplace_back(resource_slot::named(resource_role::check_input_tree,input.input.hex()),input.resource,resource_access::read_only,logical_path::parse("/check/inputs/"+input.input.hex()));
-  auto layout=resource_layout::seal(std::move(bindings),package_slot);
-  std::vector<environment_variable> vars; vars.emplace_back("ZEPPE_LIN_CHECK_PACKAGE",s.request().check_node().package().name()); vars.emplace_back("ZEPPE_LIN_CHECK_SOURCE","/check/source"); vars.emplace_back("ZEPPE_LIN_CHECK_ROOT","/check/package");
-  auto env=environment_policy::hermetic({logical_path::parse("/usr/bin"),logical_path::parse("/bin")},logical_path::parse("/tmp/home"),logical_path::parse("/tmp"),1,0022,std::nullopt,network_policy::denied,stdin_policy::closed,stream_policy::capture_complete,stream_policy::capture_complete,std::move(vars));
-  auto request=execution_request::seal(s.request().program(),execution_purpose::check(),s.identity().interpreter,s.paths().root_view,std::move(layout),std::move(env),credential_policy::fixed(s.identity().user_id,s.identity().group_id,s.identity().supplementary_groups,true),s.limits(),cancellation_policy::disabled());
-  std::vector<resource_materialization> mats; mats.emplace_back(s.source().tree,s.source().path); mats.emplace_back(s.package().tree,s.package().path); mats.emplace_back(request.resources().binding(temp_slot).resource(),s.paths().temporary_root); for(const auto&i:s.inputs()) mats.emplace_back(i.resource,i.path);
-  auto resources=execution_resources::admit(request,s.paths().root_view,s.paths().root_view_path,std::move(mats)); return {std::move(request),std::move(resources)};
+  bindings.emplace_back(
+      source_slot,
+      session.source().tree,
+      resource_access::read_only,
+      logical_path::parse(source_path));
+  bindings.emplace_back(
+      package_slot,
+      session.package().tree,
+      resource_access::read_only,
+      logical_path::parse(package_path));
+  bindings.emplace_back(
+      temporary_slot,
+      temporary_resource_identity(session.request()),
+      resource_access::writable,
+      logical_path::parse(temporary_path));
+
+  for (const auto& input : session.inputs()) {
+    bindings.emplace_back(
+        resource_slot::named(resource_role::check_input_tree,
+                             input.input.hex()),
+        input.resource,
+        resource_access::read_only,
+        logical_path::parse(
+            std::string(input_path_prefix) + input.input.hex()));
+  }
+
+  auto layout = resource_layout::seal(std::move(bindings), package_slot);
+  auto request = execution_request::seal(
+      session.request().program(),
+      execution_purpose::check(),
+      session.identity().interpreter,
+      session.paths().root_view,
+      std::move(layout),
+      environment_for(session),
+      credentials_for(session),
+      session.limits(),
+      cancellation_policy::disabled());
+
+  std::vector<resource_materialization> materializations;
+  materializations.emplace_back(session.source().tree,
+                                session.source().path);
+  materializations.emplace_back(session.package().tree,
+                                session.package().path);
+  materializations.emplace_back(
+      request.resources().binding(temporary_slot).resource(),
+      session.paths().temporary_root);
+  for (const auto& input : session.inputs())
+    materializations.emplace_back(input.resource, input.path);
+
+  auto resources = execution_resources::admit(
+      request,
+      session.paths().root_view,
+      session.paths().root_view_path,
+      std::move(materializations));
+
+  return {std::move(request), std::move(resources)};
 }
-check_execution_result execute(const admitted_check_session& s,pkgexec::execution_backend& backend){ auto prepared=prepare(s); pkgexec::execution_result evidence=[&]{try{return backend.execute(prepared.request,prepared.resources);}catch(const std::exception& e){throw error(error_code::backend_contract_violation,std::string("execution backend threw instead of returning evidence: ")+e.what());}}(); if(evidence.request()!=prepared.request) throw error(error_code::backend_contract_violation,"execution backend returned evidence for another request"); auto execution=pkgcheck::check_execution_evidence_identity::from_sha256(hash("pkgcheck/execution-evidence/v1\0"+evidence.identity().hex())); pkgcheck::check_result result=evidence.status()==pkgexec::execution_status::succeeded?pkgcheck::check_result::passed(s.request(),execution):pkgcheck::check_result::failed(s.request(),execution,classify(evidence),pkgcheck::check_failure_evidence_identity::from_sha256(hash("pkgcheck/failure-evidence/v1\0"+evidence.identity().hex()))); return check_execution_result(std::move(evidence),std::move(result)); }
+
+check_execution_result execute(const admitted_check_session& session,
+                               pkgexec::execution_backend& backend)
+{
+  auto prepared = prepare(session);
+  auto execution = invoke_backend(backend, prepared);
+
+  if (execution.request() != prepared.request)
+    throw error(error_code::backend_contract_violation,
+                "execution backend returned evidence for another request");
+
+  auto check = map_check_result(session, execution);
+  return check_execution_result(std::move(execution), std::move(check));
 }
+
+} // namespace pkgcheck_exec
