@@ -1,6 +1,12 @@
 # Maintaining
 
-Before release, run shared and static Meson matrices, strict compiler builds,
-ASan/UBSan, contract scripts, `git diff --check`, and `git fsck`. Inspect the
-shared object's SONAME and `DT_NEEDED` closure. ABI changes require an explicit
-SONAME decision.
+Treat session admission as a security and reproducibility boundary. A caller
+may supply vectors in arbitrary order, but stored values must be canonical and
+must preserve the exact lower authority order. Never compare independently
+canonicalized sets positionally unless their ordering contracts are identical.
+
+Before release, run shared and static Meson matrices, strict GCC and Clang
+builds, ASan/UBSan, contract scripts, `git diff --check`, and `git fsck`.
+Inspect the shared object's SONAME, exported symbols, and `DT_NEEDED` closure.
+Compare public value layouts and symbol sets with the preceding release. ABI
+changes require an explicit SONAME decision.
