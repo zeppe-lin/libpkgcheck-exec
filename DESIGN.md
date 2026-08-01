@@ -61,3 +61,29 @@ A successful execution becomes a passed check result. Cancellation maps to
 This library does not discover or extract trees, mutate package state, choose
 ready transaction units, retry checks, interpret test frameworks, or publish
 progression evidence.
+
+## Durable check-execution evidence
+
+The durable record belongs to this adapter because it binds exact
+`libpkgexec` process evidence to the corresponding terminal `libpkgcheck`
+result. The record embeds the canonical `libpkgexec 1.4` execution-result
+encoding and adds only adapter-owned outcome, execution-evidence,
+failure-classification, failure-evidence, and check-result identities.
+
+The record does not serialize a check request, execution request, backend
+profile, admitted session, materialized tree, host path, credential policy, or
+execution resource. Decode requires the exact `pkgcheck::check_request`,
+`pkgexec::execution_request`, and `pkgexec::backend_capability_profile` bodies
+from their owning authorities. Identity strings alone are not rehydration
+authority.
+
+Decode verifies the whole-record checksum, delegates subordinate process
+evidence to `libpkgexec`, reconstructs terminal check evidence through the
+public `pkgcheck::check_result` factories, verifies every retained identity,
+and requires canonical byte-for-byte re-encoding. Passed,
+execution-unavailable, program-failed, and cancelled results remain distinct
+owner evidence shapes.
+
+The codec performs no session admission, tree discovery, backend invocation,
+program execution, retry, progression publication, filesystem access, or
+mutation.

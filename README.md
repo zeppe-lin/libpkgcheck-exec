@@ -14,3 +14,11 @@ Credential groups are normalized before execution-request construction.
 
 The library does not compose transactions, build packages, unpack artifacts,
 select interpreters, implement a process backend, or advance controller state.
+
+## Durable evidence
+
+`libpkgcheck-exec` provides a versioned canonical codec for
+`check_execution_result`. It embeds `libpkgexec`'s execution-result record and
+retains the adapter-owned terminal check evidence. Decode requires the exact
+check request, execution request, and backend profile bodies; it never
+reconstructs those authorities from identity strings.

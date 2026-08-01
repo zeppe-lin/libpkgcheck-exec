@@ -21,9 +21,19 @@ and mutually disjoint after lexical normalization. Distinct admitted semantic
 resources must not share one concrete resource identity. The root-view path is
 a separate namespace coordinate and may be the filesystem root.
 
+# DURABLE EVIDENCE
+
+The versioned check-execution codec retains the exact *libpkgexec* execution
+record and adapter-owned terminal outcome, failure classification, and
+evidence identities. Decode requires the exact check request, execution
+request, and backend profile bodies. It does not reconstruct authorities from
+identity strings and performs no filesystem or execution effect.
+
+# AUTHORITY
+
 The library does not unpack artifacts, perform process syscalls, schedule
 transaction nodes, or publish controller progression.
 
 # SEE ALSO
 
-*libpkgcheck*(3), *libpkgexec*(3)
+*pkgcheck_exec_result_codec*(3), *libpkgcheck*(3), *libpkgexec*(3)

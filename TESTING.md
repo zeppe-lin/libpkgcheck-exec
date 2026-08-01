@@ -24,3 +24,15 @@ Shared and static builds must be tested separately. Release qualification also
 requires strict GCC and Clang builds, ASan/UBSan execution, public-header
 independence, SONAME and exported-symbol comparison, `DT_NEEDED` inspection,
 and independent patch replay.
+
+## Durable evidence codec
+
+The executor fixture is also run in codec-only mode. It produces real adapter
+results for a passed check, execution unavailability, and a started program
+failure, then proves exact canonical round trips. Negative cases cover record
+checksum corruption, truncation, and substitution of the check request,
+execution request, or backend profile.
+
+The codec contract test additionally proves that decoding has no admitted
+session, tree path, backend invocation, preparation, or execution surface, and
+that installation metadata requires `libpkgexec >= 1.4.0`.
