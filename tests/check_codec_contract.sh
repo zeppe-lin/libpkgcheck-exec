@@ -19,3 +19,8 @@ grep -Fq 'expected_check_result' "$root/src/result_codec.cpp"
 grep -Fq "'executor_test.cpp'" "$root/tests/meson.build"
 grep -Fq "args: ['--codec']" "$root/tests/meson.build"
 grep -Fq 'libpkgexec >= 1.4.0' "$root/src/meson.build"
+
+! grep -Eq 'admitted_check_session|execution_backend|execution_resources|filesystem::path'   "$root/include/libpkgcheck-exec/result_codec.h"
+! grep -Eq 'prepare\(|execute\(' "$root/src/result_codec.cpp"
+grep -Fq 'maximum_check_execution_result_encoding_size'   "$root/include/libpkgcheck-exec/result_codec.h"
+grep -Fq 'check_execution_result_encoding_version = 1'   "$root/include/libpkgcheck-exec/result_codec.h"

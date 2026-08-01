@@ -40,3 +40,9 @@ test(
   find_program('check_codec_contract.sh'),
   args: [meson.project_source_root()],
 )
+
+test(
+  'Meson source paths',
+  find_program('check_meson_sources.sh'),
+  args: [meson.project_source_root()],
+)
