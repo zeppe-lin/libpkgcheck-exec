@@ -4,7 +4,7 @@
 project(
   'libpkgcheck-exec',
   'cpp',
-  version: '0.1.1',
+  version: '0.2.0',
   license: 'GPL-3.0-or-later',
   meson_version: '>=1.2.0',
   default_options: [
