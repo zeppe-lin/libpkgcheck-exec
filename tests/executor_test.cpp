@@ -11,6 +11,7 @@
 #include <iostream>
 #include <optional>
 #include <stdexcept>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -255,11 +256,135 @@ void prove_backend_contract_enforcement()
   });
 }
 
+
+void require_same_result(
+    const pkgcheck_exec::check_execution_result& lhs,
+    const pkgcheck_exec::check_execution_result& rhs)
+{
+  TEST_CHECK(lhs.execution().identity() == rhs.execution().identity());
+  TEST_CHECK(lhs.execution().request() == rhs.execution().request());
+  TEST_CHECK(lhs.execution().backend() == rhs.execution().backend());
+  TEST_CHECK(lhs.execution().status() == rhs.execution().status());
+  TEST_CHECK(lhs.execution().start_state() == rhs.execution().start_state());
+  TEST_CHECK(lhs.execution().failure() == rhs.execution().failure());
+  TEST_CHECK(lhs.execution().diagnostic() == rhs.execution().diagnostic());
+  TEST_CHECK(lhs.check().identity() == rhs.check().identity());
+  TEST_CHECK(lhs.check().request() == rhs.check().request());
+  TEST_CHECK(lhs.check().outcome() == rhs.check().outcome());
+  TEST_CHECK(lhs.check().execution_evidence() ==
+             rhs.check().execution_evidence());
+  TEST_CHECK(lhs.check().failure() == rhs.check().failure());
+  TEST_CHECK(lhs.check().failure_evidence() ==
+             rhs.check().failure_evidence());
+}
+
+void prove_codec_round_trips()
+{
+  for (const auto mode : {
+           backend_mode::succeed,
+           backend_mode::unavailable,
+           backend_mode::program_failure,
+       }) {
+    auto admitted = admit(single_input_fixture());
+    const auto prepared = pkgcheck_exec::prepare(admitted);
+    backend selected(mode);
+    const auto original = pkgcheck_exec::execute(admitted, selected);
+    const auto encoding =
+        pkgcheck_exec::encode_check_execution_result(original);
+    const auto decoded = pkgcheck_exec::decode_check_execution_result(
+        encoding, admitted.request(), prepared.request, capability_profile());
+    require_same_result(original, decoded);
+    TEST_CHECK(pkgcheck_exec::encode_check_execution_result(decoded) ==
+               encoding);
+  }
+}
+
+void prove_codec_refuses_corruption()
+{
+  auto admitted = admit(single_input_fixture());
+  const auto prepared = pkgcheck_exec::prepare(admitted);
+  backend selected(backend_mode::succeed);
+  const auto result = pkgcheck_exec::execute(admitted, selected);
+  auto encoding = pkgcheck_exec::encode_check_execution_result(result);
+
+  auto corrupted = encoding;
+  corrupted[12] ^= 0x01U;
+  expect_error(pkgcheck_exec::error_code::corrupt_encoding, [&] {
+    (void)pkgcheck_exec::decode_check_execution_result(
+        corrupted, admitted.request(), prepared.request,
+        capability_profile());
+  });
+
+  auto truncated = encoding;
+  truncated.pop_back();
+  expect_error(pkgcheck_exec::error_code::corrupt_encoding, [&] {
+    (void)pkgcheck_exec::decode_check_execution_result(
+        truncated, admitted.request(), prepared.request,
+        capability_profile());
+  });
+}
+
+pkgcheck::check_request foreign_check_request()
+{
+  auto scenario = check_fixture::make_scenario("printf 'other\\n'\n");
+  auto build = check_fixture::successful_build(
+      scenario.checked, scenario.tester, '6');
+  return pkgcheck::check_request::seal(
+      scenario.transaction,
+      check_fixture::node(
+          scenario.transaction,
+          pkgtransaction::transaction_action_kind::check).identity(),
+      std::move(build));
+}
+
+void prove_codec_requires_exact_authority()
+{
+  auto admitted = admit(single_input_fixture());
+  const auto prepared = pkgcheck_exec::prepare(admitted);
+  backend selected(backend_mode::program_failure);
+  const auto result = pkgcheck_exec::execute(admitted, selected);
+  const auto encoding = pkgcheck_exec::encode_check_execution_result(result);
+
+  expect_error(pkgcheck_exec::error_code::authority_mismatch, [&] {
+    (void)pkgcheck_exec::decode_check_execution_result(
+        encoding, foreign_check_request(), prepared.request,
+        capability_profile());
+  });
+
+  auto foreign_fixture = single_input_fixture();
+  foreign_fixture.identity.user_id = 1001;
+  const auto foreign_execution =
+      pkgcheck_exec::prepare(admit(std::move(foreign_fixture))).request;
+  expect_error(pkgcheck_exec::error_code::authority_mismatch, [&] {
+    (void)pkgcheck_exec::decode_check_execution_result(
+        encoding, admitted.request(), foreign_execution,
+        capability_profile());
+  });
+
+  expect_error(pkgcheck_exec::error_code::authority_mismatch, [&] {
+    (void)pkgcheck_exec::decode_check_execution_result(
+        encoding, admitted.request(), prepared.request,
+        capability_profile('8'));
+  });
+}
+
+void prove_codec_contract()
+{
+  prove_codec_round_trips();
+  prove_codec_refuses_corruption();
+  prove_codec_requires_exact_authority();
+}
+
 } // namespace
 
-int main()
+int main(int argc, char** argv)
 {
   try {
+    if (argc == 2 && std::string_view(argv[1]) == "--codec") {
+      prove_codec_contract();
+      return 0;
+    }
+    TEST_CHECK(argc == 1);
     prove_request_and_resource_translation();
     prove_host_coordinates_do_not_change_semantic_request();
     prove_terminal_result_mapping();

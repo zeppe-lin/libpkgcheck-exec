@@ -7,6 +7,11 @@ executor_test = executable(
   dependencies: libpkgcheck_exec_dep
 )
 test('check execution authority', executor_test)
+test(
+  'durable check evidence codec',
+  executor_test,
+  args: ['--codec'],
+)
 
 session_test = executable(
   'session-test',
@@ -29,3 +34,9 @@ test('authority contract',
 test('release metadata',
   find_program('check_release_metadata.sh'),
   args:[meson.project_source_root(), meson.project_version()])
+
+test(
+  'codec contract',
+  find_program('check_codec_contract.sh'),
+  args: [meson.project_source_root()],
+)
