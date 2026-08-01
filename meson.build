@@ -41,7 +41,7 @@ libpkgcheck_dep = dependency(
 
 libpkgexec_dep = dependency(
   'libpkgexec',
-  version: '>=1.3.0',
+  version: '>=1.4.0',
   required: true,
   static: want_static,
   fallback: ['libpkgexec','libpkgexec_dep']

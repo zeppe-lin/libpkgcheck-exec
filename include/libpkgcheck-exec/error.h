@@ -17,6 +17,9 @@ enum class error_code {
   missing_input,
   backend_contract_violation,
   identity_failed,
+  inconsistent_result,
+  corrupt_encoding,
+  authority_mismatch,
 };
 
 [[nodiscard]] std::string_view to_string(error_code) noexcept;

@@ -5,6 +5,8 @@
 
 #include <libpkgcheck-exec/error.h>
 
+#include "result_identity.h"
+
 #include <openssl/evp.h>
 
 #include <array>
@@ -70,38 +72,6 @@ pkgexec::resource_identity temporary_resource_identity(
   return pkgexec::resource_identity::from_sha256(sha256_hex(material));
 }
 
-pkgcheck::check_execution_evidence_identity execution_evidence_identity(
-    const pkgexec::execution_result& execution)
-{
-  const auto material = identity_material(
-      "pkgcheck/execution-evidence/v1", execution.identity().hex());
-  return pkgcheck::check_execution_evidence_identity::from_sha256(
-      sha256_hex(material));
-}
-
-pkgcheck::check_failure_evidence_identity failure_evidence_identity(
-    const pkgexec::execution_result& execution)
-{
-  const auto material = identity_material(
-      "pkgcheck/failure-evidence/v1", execution.identity().hex());
-  return pkgcheck::check_failure_evidence_identity::from_sha256(
-      sha256_hex(material));
-}
-
-pkgcheck::check_failure_kind classify_failure(
-    const pkgexec::execution_result& execution)
-{
-  if (execution.failure() &&
-      *execution.failure() == pkgexec::execution_failure_kind::cancelled)
-    return pkgcheck::check_failure_kind::cancelled;
-
-  if (execution.start_state() ==
-      pkgexec::execution_start_state::not_started)
-    return pkgcheck::check_failure_kind::execution_unavailable;
-
-  return pkgcheck::check_failure_kind::program_failed;
-}
-
 std::vector<pkgexec::environment_variable> environment_variables(
     const admitted_check_session& session)
 {
@@ -144,22 +114,6 @@ pkgexec::credential_policy credentials_for(
       identity.group_id,
       identity.supplementary_groups,
       true);
-}
-
-pkgcheck::check_result map_check_result(
-    const admitted_check_session& session,
-    const pkgexec::execution_result& execution)
-{
-  auto evidence = execution_evidence_identity(execution);
-  if (execution.status() == pkgexec::execution_status::succeeded)
-    return pkgcheck::check_result::passed(session.request(),
-                                          std::move(evidence));
-
-  return pkgcheck::check_result::failed(
-      session.request(),
-      std::move(evidence),
-      classify_failure(execution),
-      failure_evidence_identity(execution));
 }
 
 pkgexec::backend_capability_profile backend_capabilities(
@@ -300,7 +254,8 @@ check_execution_result execute(const admitted_check_session& session,
     throw error(error_code::backend_contract_violation,
                 "execution backend returned evidence for another backend profile");
 
-  auto check = map_check_result(session, execution);
+  auto check = detail::expected_check_result(
+      execution, session.request());
   return check_execution_result(std::move(execution), std::move(check));
 }
 

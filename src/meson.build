@@ -6,6 +6,7 @@ public_headers = files(
   '../include/libpkgcheck-exec/error.h',
   '../include/libpkgcheck-exec/model.h',
   '../include/libpkgcheck-exec/executor.h',
+  '../include/libpkgcheck-exec/result_codec.h',
   '../include/libpkgcheck-exec/libpkgcheck-exec.h'
 )
 
@@ -13,7 +14,7 @@ public_deps = [libpkgcheck_dep, libpkgexec_dep]
 
 libpkgcheck_exec = library(
   'pkgcheck-exec',
-  ['error.cpp', 'model.cpp', 'executor.cpp'],
+  ['error.cpp', 'model.cpp', 'result_identity.cpp', 'result_codec.cpp', 'executor.cpp'],
   include_directories: public_inc,
   dependencies: public_deps + [libcrypto_dep],
   install: true,
@@ -40,6 +41,6 @@ pkgconf.generate(
   filebase: 'libpkgcheck-exec',
   description: 'Native check execution adapter',
   subdirs: '.',
-  requires: ['libpkgcheck >= 0.1.0', 'libpkgexec >= 1.3.0'],
+  requires: ['libpkgcheck >= 0.1.0', 'libpkgexec >= 1.4.0'],
   requires_private: ['libcrypto']
 )

@@ -24,6 +24,12 @@ std::string_view to_string(error_code value) noexcept
     return "backend-contract-violation";
   case error_code::identity_failed:
     return "identity-failed";
+  case error_code::inconsistent_result:
+    return "inconsistent-result";
+  case error_code::corrupt_encoding:
+    return "corrupt-encoding";
+  case error_code::authority_mismatch:
+    return "authority-mismatch";
   }
   return "unknown";
 }

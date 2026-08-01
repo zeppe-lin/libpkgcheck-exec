@@ -12,6 +12,10 @@
 
 namespace pkgcheck_exec {
 
+namespace detail {
+class codec_access;
+}
+
 struct source_tree final {
   pkgsource::source_snapshot_identity source;
   pkgexec::resource_identity tree;
@@ -100,6 +104,8 @@ private:
 
   pkgexec::execution_result execution_;
   pkgcheck::check_result check_;
+
+  friend class detail::codec_access;
 
   friend check_execution_result execute(
       const admitted_check_session&,
