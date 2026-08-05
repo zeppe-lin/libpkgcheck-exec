@@ -28,9 +28,8 @@ struct checked_package_tree final {
   std::filesystem::path path;
 };
 
-struct package_input_tree final {
-  pkgbuild::resolved_package_input_identity input;
-  pkgbuild::input_tree_identity tree;
+struct package_input_resource final {
+  pkgbuild::build_input_identity input;
   pkgexec::resource_identity resource;
   std::filesystem::path path;
 };
@@ -54,7 +53,7 @@ public:
       pkgcheck::check_request request,
       source_tree source,
       checked_package_tree package,
-      std::vector<package_input_tree> inputs,
+      std::vector<package_input_resource> inputs,
       session_paths paths,
       execution_identity identity,
       pkgexec::resource_limits limits = pkgexec::resource_limits::make());
@@ -62,7 +61,7 @@ public:
   [[nodiscard]] const pkgcheck::check_request& request() const noexcept;
   [[nodiscard]] const source_tree& source() const noexcept;
   [[nodiscard]] const checked_package_tree& package() const noexcept;
-  [[nodiscard]] const std::vector<package_input_tree>&
+  [[nodiscard]] const std::vector<package_input_resource>&
   inputs() const noexcept;
   [[nodiscard]] const session_paths& paths() const noexcept;
   [[nodiscard]] const execution_identity& identity() const noexcept;
@@ -73,7 +72,7 @@ private:
       pkgcheck::check_request request,
       source_tree source,
       checked_package_tree package,
-      std::vector<package_input_tree> inputs,
+      std::vector<package_input_resource> inputs,
       session_paths paths,
       execution_identity identity,
       pkgexec::resource_limits limits);
@@ -81,7 +80,7 @@ private:
   pkgcheck::check_request request_;
   source_tree source_;
   checked_package_tree package_;
-  std::vector<package_input_tree> inputs_;
+  std::vector<package_input_resource> inputs_;
   session_paths paths_;
   execution_identity identity_;
   pkgexec::resource_limits limits_;

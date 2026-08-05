@@ -4,7 +4,7 @@
 project(
   'libpkgcheck-exec',
   'cpp',
-  version: '0.2.0',
+  version: '0.3.0',
   license: 'GPL-3.0-or-later',
   meson_version: '>=1.2.0',
   default_options: [
@@ -33,7 +33,7 @@ libcrypto_dep = dependency(
 
 libpkgcheck_dep = dependency(
   'libpkgcheck',
-  version: '>=0.1.0',
+  version: ['>=0.2.0', '<1.0.0'],
   required: true,
   static: want_static,
   fallback: ['libpkgcheck','libpkgcheck_dep']
@@ -41,7 +41,7 @@ libpkgcheck_dep = dependency(
 
 libpkgexec_dep = dependency(
   'libpkgexec',
-  version: '>=1.4.0',
+  version: ['>=1.4.0', '<2.0.0'],
   required: true,
   static: want_static,
   fallback: ['libpkgexec','libpkgexec_dep']

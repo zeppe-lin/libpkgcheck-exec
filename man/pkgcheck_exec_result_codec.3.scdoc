@@ -27,7 +27,7 @@ the terminal check result through its public factories, checks every retained
 identity, and requires canonical byte-for-byte re-encoding.
 
 The codec never serializes or reconstructs admitted sessions, source trees,
-checked package trees, package-input trees, host paths, credentials, execution
+checked-package resources, package-input resources, host paths, credentials, execution
 resources, or backend semantics. Identity strings are not semantic authority.
 Decoding performs no tree discovery, backend invocation, program execution,
 retry, progression publication, filesystem access, or mutation.

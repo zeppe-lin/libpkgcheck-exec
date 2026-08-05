@@ -41,6 +41,6 @@ pkgconf.generate(
   filebase: 'libpkgcheck-exec',
   description: 'Native check execution adapter',
   subdirs: '.',
-  requires: ['libpkgcheck >= 0.1.0', 'libpkgexec >= 1.4.0'],
+  requires: ['libpkgcheck >= 0.2.0', 'libpkgcheck < 1.0.0', 'libpkgexec >= 1.4.0', 'libpkgexec < 2.0.0'],
   requires_private: ['libcrypto']
 )

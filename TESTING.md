@@ -5,8 +5,8 @@ The suite separates session-admission and execution-projection contracts.
 Session tests prove:
 
 - unordered multi-input sets canonicalize to sealed request order;
-- exact logical `/check/inputs/<identity>` bindings and host materializations;
-- missing, duplicate, unrelated, and forged input authority rejection;
+- exact logical `/check/inputs/<identity>` bindings and concrete host resources;
+- missing, duplicate, and unrelated logical input authority rejection;
 - source and artifact authority rejection;
 - canonical supplementary groups and duplicate-group rejection;
 - absolute, non-root, mutually disjoint concrete paths;

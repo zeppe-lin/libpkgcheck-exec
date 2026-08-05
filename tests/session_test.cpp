@@ -35,7 +35,7 @@ void expect_error(pkgcheck_exec::error_code expected, Function&& function)
 
 pkgcheck_exec::admitted_check_session multi_input_session(
     pkgcheck::check_request& request,
-    std::vector<pkgcheck_exec::package_input_tree>& supplied,
+    std::vector<pkgcheck_exec::package_input_resource>& supplied,
     check_fixture::multi_input_scenario& scenario,
     pkgbuild::build_result& build)
 {
@@ -77,21 +77,20 @@ void prove_multi_input_set_admission()
       build);
 
   TEST_CHECK(request.inputs().inputs().size() == 2);
-  TEST_CHECK(request.inputs().inputs()[0].resolved().declared_package().name() ==
-             "tester-a");
-  TEST_CHECK(request.inputs().inputs()[1].resolved().declared_package().name() ==
-             "tester-b");
-  TEST_CHECK(request.inputs().inputs()[1].resolved().identity() <
-             request.inputs().inputs()[0].resolved().identity());
+  std::vector<std::string> package_names;
+  for (const auto& input : request.inputs().inputs())
+    package_names.push_back(input.package().name());
+  std::sort(package_names.begin(), package_names.end());
+  TEST_CHECK(package_names ==
+             std::vector<std::string>({"tester-a", "tester-b"}));
 
-  std::vector<pkgcheck_exec::package_input_tree> supplied;
+  std::vector<pkgcheck_exec::package_input_resource> supplied;
   char resource_seed = '4';
   for (const auto& input : request.inputs().inputs()) {
     supplied.push_back({
-        input.resolved().identity(),
-        input.tree(),
+        input.identity(),
         pkgexec::resource_identity::from_sha256(hex(resource_seed++)),
-        "/trees/input/" + input.resolved().declared_package().name(),
+        "/trees/input/" + input.package().name(),
     });
   }
   std::reverse(supplied.begin(), supplied.end());
@@ -101,8 +100,7 @@ void prove_multi_input_set_admission()
   for (std::size_t index = 0; index < admitted.inputs().size(); ++index) {
     const auto& expected = request.inputs().inputs()[index];
     const auto& concrete = admitted.inputs()[index];
-    TEST_CHECK(concrete.input == expected.resolved().identity());
-    TEST_CHECK(concrete.tree == expected.tree());
+    TEST_CHECK(concrete.input == expected.identity());
 
     const auto slot = pkgexec::resource_slot::named(
         pkgexec::resource_role::check_input_tree,
@@ -138,15 +136,9 @@ void prove_multi_input_set_admission()
     (void)multi_input_session(request, duplicate, scenario, build);
   });
 
-  auto forged = supplied;
-  forged[0].tree = pkgbuild::input_tree_identity::from_sha256(hex('0'));
-  expect_error(pkgcheck_exec::error_code::inconsistent_authority, [&] {
-    (void)multi_input_session(request, forged, scenario, build);
-  });
-
   auto unrelated = supplied;
   unrelated[0].input =
-      pkgbuild::resolved_package_input_identity::from_sha256(hex('0'));
+      pkgbuild::build_input_identity::from_sha256(hex('0'));
   expect_error(pkgcheck_exec::error_code::missing_input, [&] {
     (void)multi_input_session(request, unrelated, scenario, build);
   });

@@ -22,7 +22,7 @@ struct admission_fixture final {
   pkgcheck::check_request request;
   pkgcheck_exec::source_tree source;
   pkgcheck_exec::checked_package_tree package;
-  std::vector<pkgcheck_exec::package_input_tree> inputs;
+  std::vector<pkgcheck_exec::package_input_resource> inputs;
   pkgcheck_exec::session_paths paths;
   pkgcheck_exec::execution_identity identity;
   pkgexec::resource_limits limits;
@@ -31,8 +31,7 @@ struct admission_fixture final {
 inline admission_fixture single_input_fixture()
 {
   auto scenario = check_fixture::make_scenario();
-  auto build = check_fixture::successful_build(
-      scenario.checked, scenario.tester);
+  auto build = check_fixture::successful_build(scenario.transaction);
   auto request = pkgcheck::check_request::seal(
       scenario.transaction,
       check_fixture::node(
@@ -40,11 +39,10 @@ inline admission_fixture single_input_fixture()
           pkgtransaction::transaction_action_kind::check).identity(),
       build);
 
-  std::vector<pkgcheck_exec::package_input_tree> inputs;
+  std::vector<pkgcheck_exec::package_input_resource> inputs;
   for (const auto& input : request.inputs().inputs()) {
     inputs.push_back({
-        input.resolved().identity(),
-        input.tree(),
+        input.identity(),
         pkgexec::resource_identity::from_sha256(hex('d')),
         "/trees/input/tester",
     });

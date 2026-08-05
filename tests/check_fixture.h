@@ -93,37 +93,19 @@ inline const pkgtransaction::transaction_node& node(
   return *found;
 }
 
-inline pkgbuild::materialized_package_input check_input(
-    const pkgsource::source_snapshot& source, char seed)
-{
-  const std::string hex(64, seed);
-  return pkgbuild::materialized_package_input(
-      pkgbuild::resolved_package_input::make(
-          pkgbuild::input_scope::check,
-          source.recipe().release().package(),
-          source.recipe().release(), source.identity(),
-          pkgbuild::build_result_identity::from_sha256(hex),
-          pkgbuild::artifact_identity::from_sha256(hex)),
-      pkgbuild::input_tree_identity::from_sha256(hex));
-}
-
 inline pkgbuild::build_request request(
-    const pkgsource::source_snapshot& checked,
-    std::vector<pkgbuild::materialized_package_input> inputs)
+    const pkgtransaction::transaction_program& transaction,
+    std::uint32_t parallelism = 2)
 {
+  const auto& build = node(
+      transaction, pkgtransaction::transaction_action_kind::build);
+  if (!build.selection())
+    throw std::runtime_error("build fixture lacks selected package authority");
   return pkgbuild::build_request::seal(
-      checked, {}, std::move(inputs),
-      pkgsource::architecture_reference("x86_64"),
-      pkgsource::architecture_reference("x86_64"),
+      transaction.request().resolution(), build.selection()->identity(),
       pkgbuild::build_policy::make(
-          pkgbuild::environment_policy::hermetic(2, 0022, 1700000000)));
-}
-
-inline pkgbuild::build_request request(
-    const pkgsource::source_snapshot& checked,
-    const pkgsource::source_snapshot& tester)
-{
-  return request(checked, {check_input(tester, 'a')});
+          pkgbuild::environment_policy::hermetic(
+              parallelism, 0022, 1700000000)));
 }
 
 inline pkgbuild::build_result successful_build(
@@ -133,7 +115,7 @@ inline pkgbuild::build_result successful_build(
   return pkgbuild::build_result::succeeded(
       std::move(request), pkgbuild::payload_manifest::seal({}),
       pkgbuild::sealed_artifact::make(
-          pkgbuild::artifact_encoding::package_tar_v1,
+          pkgbuild::artifact_encoding::package_tar,
           pkgbuild::artifact_compression::none, 128,
           pkgbuild::sha256_digest(std::string(64, seed))),
       pkgbuild::execution_evidence_identity::from_sha256(
@@ -141,33 +123,24 @@ inline pkgbuild::build_result successful_build(
 }
 
 inline pkgbuild::build_result successful_build(
-    const pkgsource::source_snapshot& checked,
-    const pkgsource::source_snapshot& tester,
+    const pkgtransaction::transaction_program& transaction,
     char seed = 'b')
 {
-  return successful_build(request(checked, tester), seed);
+  return successful_build(request(transaction), seed);
 }
 
 inline pkgbuild::build_result successful_multi_input_build(
     const multi_input_scenario& scenario)
 {
-  // Deliberately oppose identity ordering to package-name ordering.
-  return successful_build(
-      request(scenario.checked,
-              {
-                  check_input(scenario.tester_a, 'f'),
-                  check_input(scenario.tester_b, '1'),
-              }),
-      'b');
+  return successful_build(scenario.transaction, 'b');
 }
 
 inline pkgbuild::build_result failed_build(
-    const pkgsource::source_snapshot& checked,
-    const pkgsource::source_snapshot& tester,
+    const pkgtransaction::transaction_program& transaction,
     char seed = 'd')
 {
   return pkgbuild::build_result::failed(
-      request(checked, tester),
+      request(transaction),
       pkgbuild::execution_evidence_identity::from_sha256(
           std::string(64, seed)),
       pkgbuild::failure_evidence_identity::from_sha256(
@@ -181,7 +154,7 @@ inline pkgcheck::check_request admitted_request()
       value.transaction,
       node(value.transaction,
            pkgtransaction::transaction_action_kind::check).identity(),
-      successful_build(value.checked, value.tester));
+      successful_build(value.transaction));
 }
 
 } // namespace check_fixture

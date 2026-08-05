@@ -78,9 +78,9 @@ void require_package_authority(const pkgcheck::check_request& request,
                 "build artifact");
 }
 
-std::vector<package_input_tree> normalize_and_validate_inputs(
+std::vector<package_input_resource> normalize_and_validate_inputs(
     const pkgcheck::check_request& request,
-    std::vector<package_input_tree> supplied)
+    std::vector<package_input_resource> supplied)
 {
   for (auto& input : supplied)
     input.path = require_absolute_path(std::move(input.path),
@@ -94,31 +94,27 @@ std::vector<package_input_tree> normalize_and_validate_inputs(
   for (std::size_t index = 1; index < supplied.size(); ++index) {
     if (supplied[index - 1].input == supplied[index].input)
       throw error(error_code::duplicate_input,
-                  "duplicate check input tree authority");
+                  "duplicate check input resource authority");
   }
 
   const auto& expected = request.inputs().inputs();
   if (supplied.size() != expected.size())
     throw error(error_code::missing_input,
-                "check input tree set is incomplete");
+                "check input resource set is incomplete");
 
-  std::vector<package_input_tree> normalized;
+  std::vector<package_input_resource> normalized;
   normalized.reserve(expected.size());
   for (const auto& authority : expected) {
-    const auto& identity = authority.resolved().identity();
+    const auto& identity = authority.identity();
     const auto found = std::lower_bound(
         supplied.begin(), supplied.end(), identity,
-        [](const package_input_tree& value, const auto& key) {
+        [](const package_input_resource& value, const auto& key) {
           return value.input < key;
         });
 
     if (found == supplied.end() || found->input != identity)
       throw error(error_code::missing_input,
-                  "sealed check input tree authority is missing");
-    if (found->tree != authority.tree())
-      throw error(error_code::inconsistent_authority,
-                  "check input tree does not match the sealed request");
-
+                  "logical check input resource is missing");
     normalized.push_back(*found);
   }
   return normalized;
@@ -144,7 +140,7 @@ struct concrete_path final {
 void require_unique_resource_identities(
     const source_tree& source,
     const checked_package_tree& package,
-    const std::vector<package_input_tree>& inputs)
+    const std::vector<package_input_resource>& inputs)
 {
   std::vector<pkgexec::resource_identity> identities;
   identities.reserve(inputs.size() + 2);
@@ -163,7 +159,7 @@ void require_unique_resource_identities(
 void require_disjoint_resource_paths(
     const source_tree& source,
     const checked_package_tree& package,
-    const std::vector<package_input_tree>& inputs,
+    const std::vector<package_input_resource>& inputs,
     const session_paths& paths)
 {
   std::vector<concrete_path> resources;
@@ -192,7 +188,7 @@ admitted_check_session::admitted_check_session(
     pkgcheck::check_request request,
     source_tree source,
     checked_package_tree package,
-    std::vector<package_input_tree> inputs,
+    std::vector<package_input_resource> inputs,
     session_paths paths,
     execution_identity identity,
     pkgexec::resource_limits limits)
@@ -207,7 +203,7 @@ admitted_check_session admitted_check_session::admit(
     pkgcheck::check_request request,
     source_tree source,
     checked_package_tree package,
-    std::vector<package_input_tree> inputs,
+    std::vector<package_input_resource> inputs,
     session_paths paths,
     execution_identity identity,
     pkgexec::resource_limits limits)
@@ -243,7 +239,7 @@ const checked_package_tree& admitted_check_session::package() const noexcept
   return package_;
 }
 
-const std::vector<package_input_tree>&
+const std::vector<package_input_resource>&
 admitted_check_session::inputs() const noexcept
 {
   return inputs_;

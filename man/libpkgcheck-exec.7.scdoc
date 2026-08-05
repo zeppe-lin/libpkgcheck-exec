@@ -6,15 +6,20 @@ libpkgcheck-exec - native check execution adapter
 
 # DESCRIPTION
 
-*libpkgcheck-exec* admits concrete source, built-package, check-input, root-view,
-and temporary trees for one sealed *libpkgcheck* request. It translates the
-source-owned check program into a backend-neutral *libpkgexec* request with
-purpose *check*, invokes one backend, and seals terminal *libpkgcheck* evidence.
+*libpkgcheck-exec* admits concrete source, built-package, logical check-input,
+root-view, and temporary resources for one sealed *libpkgcheck* request. It
+translates the source-owned check program into a backend-neutral *libpkgexec*
+request with purpose *check*, invokes one backend, and seals terminal
+*libpkgcheck* evidence.
 
-Check-input trees are matched by exact input authority and retained in the
-canonical order of the sealed request. Caller order is not semantically
-significant. Missing, duplicate, unrelated, and tree-mismatched input authority
-is rejected.
+Check-input resources are matched by exact *pkgbuild::build_input_identity* and
+retained in the canonical order of the sealed request. Caller order is not
+semantically significant. Missing, duplicate, and unrelated logical input
+authorities are rejected.
+
+Each input carries a separate concrete *pkgexec::resource_identity* and host
+path. The adapter does not issue or verify a content-addressed package-tree
+identity. Paths are operational coordinates, not package authority.
 
 Concrete source, package, input, and temporary paths must be absolute, non-root,
 and mutually disjoint after lexical normalization. Distinct admitted semantic
@@ -24,15 +29,16 @@ a separate namespace coordinate and may be the filesystem root.
 # DURABLE EVIDENCE
 
 The versioned check-execution codec retains the exact *libpkgexec* execution
-record and adapter-owned terminal outcome, failure classification, and
-evidence identities. Decode requires the exact check request, execution
-request, and backend profile bodies. It does not reconstruct authorities from
-identity strings and performs no filesystem or execution effect.
+record and adapter-owned terminal outcome, failure classification, and evidence
+identities. Decode requires the exact check request, execution request, and
+backend profile bodies. It does not reconstruct authorities from identity
+strings and performs no filesystem or execution effect.
 
 # AUTHORITY
 
-The library does not unpack artifacts, perform process syscalls, schedule
-transaction nodes, or publish controller progression.
+The library does not acquire, unpack, or materialize package resources,
+perform process syscalls, schedule transaction nodes, or publish controller
+progression.
 
 # SEE ALSO
 

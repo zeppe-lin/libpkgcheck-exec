@@ -327,8 +327,7 @@ void prove_codec_refuses_corruption()
 pkgcheck::check_request foreign_check_request()
 {
   auto scenario = check_fixture::make_scenario("printf 'other\\n'\n");
-  auto build = check_fixture::successful_build(
-      scenario.checked, scenario.tester, '6');
+  auto build = check_fixture::successful_build(scenario.transaction, '6');
   return pkgcheck::check_request::seal(
       scenario.transaction,
       check_fixture::node(

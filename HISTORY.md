@@ -1,7 +1,16 @@
 # History
 
-Version: 0.2.0
-Date: 2026-08-02
+Version: 0.3.0
+Date: 2026-08-05
+
+- Admit concrete check resources by exact logical `build_input_identity`.
+- Remove the unissued `input_tree_identity` and materialized-package-input ABI.
+- Keep package-input paths and resource identities call-scoped to execution.
+- Require libpkgcheck 0.2 and its resolver-backed logical check-input model.
+- Preserve canonical request order, resource isolation, and durable evidence.
+- Keep the libpkgcheck-exec SONAME at 0.
+
+## 0.2.0 — 2026-08-02
 
 - Establish a canonical versioned codec for complete check-execution evidence.
 - Embed libpkgexec 1.4 execution records without duplicating execution schema.
@@ -12,7 +21,7 @@ Date: 2026-08-02
 
 ## 0.1.1 — 2026-07-30
 
-Hardened concrete session admission. Multi-input trees are matched by exact
+Hardened concrete session admission. Multi-input resources are matched by exact
 authority and canonicalized into sealed request order. Concrete resource paths
 and identities cannot alias, credentials are canonicalized before projection,
 and backend evidence must match the advertised capability profile.
