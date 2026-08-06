@@ -1,5 +1,13 @@
 # History
 
+Version: 0.4.0
+Date: 2026-08-07
+
+- Add a pure canonical execution-request projection for admitted check sessions.
+- Keep call-scoped host materialization binding in the existing prepare path.
+- Let restart composition reproduce request authority without filesystem effects.
+- Preserve the shared-library SONAME at 0; this is an additive API release.
+
 Version: 0.3.0
 Date: 2026-08-05
 

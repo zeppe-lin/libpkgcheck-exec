@@ -15,6 +15,7 @@ Session tests prove:
 Executor tests prove:
 
 - exact check-purpose request translation and working-directory selection;
+- equality between pure request projection and effectful preparation;
 - read-only source/package/input resources and writable private temporary root;
 - host coordinates do not contaminate semantic execution-request identity;
 - passed, execution-unavailable, and program-failed result mapping;

@@ -12,6 +12,10 @@ translates the source-owned check program into a backend-neutral *libpkgexec*
 request with purpose *check*, invokes one backend, and seals terminal
 *libpkgcheck* evidence.
 
+*seal_execution_request()* reproduces the exact request without filesystem
+effects. *prepare()* uses that request and adds only the concrete call-scoped
+resource materializations.
+
 Check-input resources are matched by exact *pkgbuild::build_input_identity* and
 retained in the canonical order of the sealed request. Caller order is not
 semantically significant. Missing, duplicate, and unrelated logical input

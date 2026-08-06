@@ -35,7 +35,13 @@ therefore retains the same canonical credential set later sealed by
 
 ## Execution projection
 
-`prepare()` projects admitted authorities into one
+`seal_execution_request()` purely projects admitted authorities into one
+`pkgexec::execution_request`; it performs no filesystem access or mutation.
+`prepare()` calls that projection and separately binds the call-scoped host
+materializations. This lets restart recovery reproduce exact request authority
+without pretending that path realization is semantic reconstruction.
+
+The canonical request has
 `pkgexec::execution_request` whose purpose is `check`. Source, package, and
 check-input resources are read-only. Only the private temporary tree is
 writable. The checked package tree is the working directory.

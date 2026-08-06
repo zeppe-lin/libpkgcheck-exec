@@ -166,7 +166,8 @@ void require_temporary_resource_unique(
 
 } // namespace
 
-prepared_execution prepare(const admitted_check_session& session)
+pkgexec::execution_request seal_execution_request(
+    const admitted_check_session& session)
 {
   using namespace pkgexec;
 
@@ -209,7 +210,7 @@ prepared_execution prepare(const admitted_check_session& session)
   }
 
   auto layout = resource_layout::seal(std::move(bindings), package_slot);
-  auto request = execution_request::seal(
+  return execution_request::seal(
       session.request().program(),
       execution_purpose::check(),
       session.identity().interpreter,
@@ -219,6 +220,19 @@ prepared_execution prepare(const admitted_check_session& session)
       credentials_for(session),
       session.limits(),
       cancellation_policy::disabled());
+}
+
+prepared_execution prepare(const admitted_check_session& session)
+{
+  using namespace pkgexec;
+
+  const auto source_slot = resource_slot::named(
+      resource_role::source_tree, "checked-source");
+  const auto package_slot = resource_slot::named(
+      resource_role::build_input_tree, "checked-package");
+  const auto temporary_slot = resource_slot::singleton(
+      resource_role::private_temporary_root);
+  auto request = seal_execution_request(session);
 
   std::vector<resource_materialization> materializations;
   materializations.emplace_back(session.source().tree,

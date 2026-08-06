@@ -96,7 +96,9 @@ void prove_multi_input_set_admission()
   std::reverse(supplied.begin(), supplied.end());
 
   auto admitted = multi_input_session(request, supplied, scenario, build);
+  const auto sealed_request = pkgcheck_exec::seal_execution_request(admitted);
   const auto prepared = pkgcheck_exec::prepare(admitted);
+  TEST_CHECK(prepared.request == sealed_request);
   for (std::size_t index = 0; index < admitted.inputs().size(); ++index) {
     const auto& expected = request.inputs().inputs()[index];
     const auto& concrete = admitted.inputs()[index];

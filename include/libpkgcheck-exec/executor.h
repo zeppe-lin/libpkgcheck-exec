@@ -7,6 +7,10 @@
 
 namespace pkgcheck_exec {
 
+/*! \brief Seal the backend-neutral request without touching host resources. */
+[[nodiscard]] pkgexec::execution_request seal_execution_request(
+    const admitted_check_session& session);
+
 [[nodiscard]] prepared_execution prepare(
     const admitted_check_session& session);
 

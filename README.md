@@ -15,8 +15,9 @@ independently hashed into package-tree authority.
 
 Source, checked-package, input, and temporary host paths must be absolute,
 non-root, and mutually disjoint. Distinct semantic resources must not alias one
-concrete resource identity. Credential groups are normalized before execution
-request construction.
+concrete resource identity. Credential groups are normalized before execution request construction.
+`seal_execution_request()` reproduces that request without touching host
+resources; `prepare()` adds only the call-scoped materialization bindings.
 
 The library does not compose transactions, build packages, acquire or unpack
 artifacts, materialize package inputs, select interpreters, implement a process
