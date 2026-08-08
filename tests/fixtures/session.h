@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "check_fixture.h"
+#include "check.h"
 
 #include <libpkgcheck-exec/libpkgcheck-exec.h>
 
@@ -87,6 +87,42 @@ inline pkgcheck_exec::admitted_check_session admit(
       std::move(fixture.paths),
       std::move(fixture.identity),
       std::move(fixture.limits));
+}
+
+} // namespace execution_fixture
+
+namespace execution_fixture {
+
+inline pkgcheck_exec::admitted_check_session multi_input_session(
+    pkgcheck::check_request request,
+    const check_fixture::multi_input_scenario& scenario,
+    const pkgbuild::build_result& build,
+    std::vector<pkgcheck_exec::package_input_resource> inputs)
+{
+  return pkgcheck_exec::admitted_check_session::admit(
+      std::move(request),
+      {
+          scenario.checked.identity(),
+          pkgexec::resource_identity::from_sha256(hex('a')),
+          "/trees/source",
+      },
+      {
+          build.artifact()->identity(),
+          pkgexec::resource_identity::from_sha256(hex('b')),
+          "/trees/package",
+      },
+      std::move(inputs),
+      {
+          pkgexec::root_view_identity::from_sha256(hex('c')),
+          "/",
+          "/tmp/check-session",
+      },
+      {
+          pkgexec::interpreter_identity::from_sha256(hex('e')),
+          1000,
+          1000,
+          {},
+      });
 }
 
 } // namespace execution_fixture

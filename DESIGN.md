@@ -66,10 +66,14 @@ backend, and accepts only evidence for both the exact prepared request and the
 same advertised backend profile. Standard and non-standard backend exceptions
 are converted to `backend-contract-violation`.
 
-A successful execution becomes a passed check result. Cancellation maps to
-`cancelled`; a failure before process start maps to
-`execution-unavailable`; every other terminal process failure maps to
-`program-failed`.
+A successful execution becomes a passed check result. The current check
+projection deliberately disables request cancellation, so ordinary adapter
+execution can produce `passed`, `execution-unavailable`, or `program-failed`
+check evidence. The shared classifier retains the `cancelled` vocabulary for a
+request that carries valid cancellation authority, but `seal_execution_request()`
+does not create such a request in this release. A failure before process start
+maps to `execution-unavailable`; every other reachable terminal process failure
+maps to `program-failed`.
 
 ## Exclusions
 
@@ -96,8 +100,9 @@ Decode verifies the whole-record checksum, delegates subordinate process
 evidence to `libpkgexec`, reconstructs terminal check evidence through the
 public `pkgcheck::check_result` factories, verifies every retained identity,
 and requires canonical byte-for-byte re-encoding. Passed,
-execution-unavailable, program-failed, and cancelled results remain distinct
-owner evidence shapes.
+execution-unavailable, program-failed, and cancelled remain distinct owner
+vocabulary; records produced by the current adapter use the first three because
+its sealed execution request has cancellation disabled.
 
 The codec performs no session admission, resource discovery, backend
 invocation, program execution, retry, progression publication, filesystem

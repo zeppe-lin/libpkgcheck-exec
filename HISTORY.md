@@ -7,6 +7,8 @@ Date: 2026-08-07
 - Keep call-scoped host materialization binding in the existing prepare path.
 - Let restart composition reproduce request authority without filesystem effects.
 - Preserve the shared-library SONAME at 0; this is an additive API release.
+- Separate unit, integration, protocol, header, and contract qualification.
+- Pin request-scoped cancellation, backend-contract, and resource-admission semantics independently.
 
 Version: 0.3.0
 Date: 2026-08-05

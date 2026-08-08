@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "fixture.h"
+#include "authority.h"
 
 #include <libpkgtransaction/libpkgtransaction.h>
 
