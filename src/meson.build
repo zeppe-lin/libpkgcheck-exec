@@ -2,6 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 public_inc = include_directories('../include')
+installed_public_headers = files(
+  '../include/libpkgcheck-exec/error.h',
+  '../include/libpkgcheck-exec/model.h',
+  '../include/libpkgcheck-exec/executor.h',
+  '../include/libpkgcheck-exec/result_codec.h',
+  '../include/libpkgcheck-exec/libpkgcheck-exec.h',
+)
 
 elf_export_generator = find_program(
   meson.project_source_root() / 'tools/generate-elf-export-script.sh',
@@ -44,7 +51,7 @@ libpkgcheck_exec_dep = declare_dependency(
 meson.override_dependency('libpkgcheck-exec', libpkgcheck_exec_dep)
 
 install_headers(
-  public_headers,
+  installed_public_headers,
   subdir: 'libpkgcheck-exec',
 )
 

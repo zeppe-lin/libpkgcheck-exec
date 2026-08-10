@@ -40,3 +40,19 @@ for path in \
 do
   test -f "$root/$path" || { echo "missing Meson/test input: $path" >&2; exit 1; }
 done
+meson=$root/src/meson.build
+grep -F 'installed_public_headers = files(' "$meson" >/dev/null || {
+  echo 'production public-header install set is absent' >&2
+  exit 1
+}
+for header in error.h model.h executor.h result_codec.h libpkgcheck-exec.h; do
+  grep -F "../include/libpkgcheck-exec/$header" "$meson" >/dev/null || {
+    echo "public header missing from install set: $header" >&2
+    exit 1
+  }
+done
+grep -F 'install_headers(' "$meson" >/dev/null
+grep -F '  installed_public_headers,' "$meson" >/dev/null || {
+  echo 'install_headers does not consume production public-header set' >&2
+  exit 1
+}
