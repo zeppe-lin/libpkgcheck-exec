@@ -26,6 +26,16 @@ for path in \
   tests/contracts/check_release_metadata.sh \
   tests/contracts/check_meson_sources.sh \
   tests/contracts/check_test_layout.sh \
+  tests/contracts/check_abi_contract.sh \
+  tests/contracts/check_abi_surface.sh \
+  tests/contracts/check_dependency_abi.sh \
+  tests/contracts/check_pkgconfig_metadata.sh \
+  tests/contracts/check_ci_contract.sh \
+  tests/contracts/abi_layout_test.cpp \
+  tests/installed/consumer.cpp \
+  abi/libpkgcheck-exec.exports \
+  tools/generate-elf-export-script.sh \
+  ci/configure-and-test.sh ci/qualify.sh .github/workflows/ci.yml \
   man/libpkgcheck-exec.7.scdoc man/pkgcheck_exec_result_codec.3.scdoc
 do
   test -f "$root/$path" || { echo "missing Meson/test input: $path" >&2; exit 1; }

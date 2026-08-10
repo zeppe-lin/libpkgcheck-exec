@@ -2,12 +2,17 @@
 # SPDX-FileCopyrightText: 2026 Alexandr Savca
 # SPDX-License-Identifier: GPL-3.0-or-later
 set -eu
-root=${1:?}
-version=${2:?}
-grep -Fq "version: '$version'" "$root/meson.build"
-grep -Fq "soversion: '0'" "$root/src/meson.build"
-grep -Fq "libpkgcheck >= 0.2.0" "$root/src/meson.build"
-grep -Fq "libpkgexec >= 1.4.0" "$root/src/meson.build"
-grep -Fq "Version: $version" "$root/HISTORY.md"
-grep -Fq 'pkgcheck_exec_result_codec.3' "$root/man/meson.build"
-grep -Fq '../include/libpkgcheck-exec/result_codec.h' "$root/src/meson.build"
+root=${1:?source root required}
+fail() { echo "release-metadata: $*" >&2; exit 1; }
+version=$(sed -n "s/^[[:space:]]*version: '\([^']*\)'.*/\1/p" "$root/meson.build" | head -n 1)
+[ "$version" = 0.4.0 ] || fail "project version is '$version', expected 0.4.0"
+grep -F 'Version: 0.4.0' "$root/HISTORY.md" >/dev/null || fail 'HISTORY omits 0.4.0'
+grep -F "soversion: '1'" "$root/src/meson.build" >/dev/null || fail 'shared library is not SONAME 1'
+block() { sed -n "/^[[:space:]]*'$1',[[:space:]]*$/,/^[[:space:]]*)/p" "$root/meson.build"; }
+for spec in 'libpkgcheck >=0.2.0 <1.0.0' 'libpkgexec >=1.4.0 <2.0.0'; do
+  set -- $spec; dep=$1; lo=$2; hi=$3; b=$(block "$dep")
+  printf '%s\n' "$b" | grep -F "'$lo'" >/dev/null || fail "$dep omits $lo"
+  printf '%s\n' "$b" | grep -F "'$hi'" >/dev/null || fail "$dep omits $hi"
+done
+grep -F 'requires: public_deps' "$root/src/meson.build" >/dev/null || fail 'pkg-config requirements are not dependency-object backed'
+grep -F 'requires_private: [libcrypto_dep]' "$root/src/meson.build" >/dev/null || fail 'private crypto metadata is not dependency-object backed'

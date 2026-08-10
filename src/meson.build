@@ -2,12 +2,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 public_inc = include_directories('../include')
-public_headers = files(
-  '../include/libpkgcheck-exec/error.h',
-  '../include/libpkgcheck-exec/model.h',
-  '../include/libpkgcheck-exec/executor.h',
-  '../include/libpkgcheck-exec/result_codec.h',
-  '../include/libpkgcheck-exec/libpkgcheck-exec.h'
+
+elf_export_generator = find_program(
+  meson.project_source_root() / 'tools/generate-elf-export-script.sh',
+)
+elf_export_script_name = 'libpkgcheck-exec.exports.map'
+elf_export_script_path = meson.current_build_dir() / elf_export_script_name
+elf_export_script = configure_file(
+  input: '../abi/libpkgcheck-exec.exports',
+  output: elf_export_script_name,
+  command: [elf_export_generator, '@INPUT@'],
+  capture: true,
 )
 
 public_deps = [libpkgcheck_dep, libpkgexec_dep]
@@ -17,22 +22,30 @@ libpkgcheck_exec = library(
   ['error.cpp', 'model.cpp', 'result_identity.cpp', 'result_codec.cpp', 'executor.cpp'],
   include_directories: public_inc,
   dependencies: public_deps + [libcrypto_dep],
+  link_args: ['-Wl,--version-script=' + elf_export_script_path],
+  link_depends: [elf_export_script],
   install: true,
   version: meson.project_version(),
-  soversion: '0'
+  soversion: '1',
 )
+
+libpkgcheck_exec_consumer_deps = public_deps
+if want_static
+  libpkgcheck_exec_consumer_deps += [libcrypto_dep]
+endif
 
 libpkgcheck_exec_dep = declare_dependency(
   link_with: libpkgcheck_exec,
   include_directories: public_inc,
-  dependencies: public_deps + [libcrypto_dep]
+  dependencies: libpkgcheck_exec_consumer_deps,
+  version: meson.project_version(),
 )
 
 meson.override_dependency('libpkgcheck-exec', libpkgcheck_exec_dep)
 
 install_headers(
   public_headers,
-  subdir: 'libpkgcheck-exec'
+  subdir: 'libpkgcheck-exec',
 )
 
 pkgconf.generate(
@@ -41,6 +54,6 @@ pkgconf.generate(
   filebase: 'libpkgcheck-exec',
   description: 'Native check execution adapter',
   subdirs: '.',
-  requires: ['libpkgcheck >= 0.2.0', 'libpkgcheck < 1.0.0', 'libpkgexec >= 1.4.0', 'libpkgexec < 2.0.0'],
-  requires_private: ['libcrypto']
+  requires: public_deps,
+  requires_private: [libcrypto_dep],
 )

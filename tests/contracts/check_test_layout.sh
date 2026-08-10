@@ -4,7 +4,7 @@
 set -eu
 root=${1:?}
 meson=$root/tests/meson.build
-for directory in contracts fixtures header integration protocol support unit; do
+for directory in contracts fixtures header installed integration protocol support unit; do
   test -d "$root/tests/$directory" || {
     echo "missing test role directory: $directory" >&2
     exit 1
@@ -33,3 +33,10 @@ grep -F "'protocol/result_codec_roundtrip_test.cpp'" "$meson" >/dev/null
 grep -F "'protocol/result_codec_refusal_test.cpp'" "$meson" >/dev/null
 grep -F "test('header-' + header.underscorify()" "$meson" >/dev/null
 ! grep -F "test('header:" "$meson" >/dev/null
+
+grep -F "'pkgconfig-metadata'" "$meson" >/dev/null
+grep -F "'abi-layout'" "$meson" >/dev/null
+grep -F "'abi-surface'" "$meson" >/dev/null
+grep -F "'dependency-abi'" "$meson" >/dev/null
+grep -F "'abi-contract': 'contracts/check_abi_contract.sh'" "$meson" >/dev/null
+grep -F "'ci-contract': 'contracts/check_ci_contract.sh'" "$meson" >/dev/null

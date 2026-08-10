@@ -1,14 +1,19 @@
 # History
 
 Version: 0.4.0
-Date: 2026-08-07
+Date: 2026-08-10
 
 - Add a pure canonical execution-request projection for admitted check sessions.
 - Keep call-scoped host materialization binding in the existing prepare path.
 - Let restart composition reproduce request authority without filesystem effects.
-- Preserve the shared-library SONAME at 0; this is an additive API release.
+- Rebuild the public ABI as `libpkgcheck-exec.so.1` for the published
+  `libpkgcheck 0.2.0` / `libpkgcheck.so.1` authority.
+- Freeze an exact reviewed ELF surface and anchor public exception RTTI.
+- Qualify exact check/exec provider generations, installed shared/static
+  consumption, GCC/Clang builds, and ASan/UBSan execution.
 - Separate unit, integration, protocol, header, and contract qualification.
-- Pin request-scoped cancellation, backend-contract, and resource-admission semantics independently.
+- Pin request-scoped cancellation, backend-contract, and resource-admission
+  semantics independently.
 
 Version: 0.3.0
 Date: 2026-08-05

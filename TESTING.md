@@ -48,10 +48,24 @@ execution request, or backend profile.
 
 Every installed public header is compiled independently. Static contracts pin
 the authority boundary, codec exclusions, release metadata, Meson source set,
-and role-separated test layout. Generated header test names use Meson-safe
+role-separated test layout, exact ABI surface, carrier layouts, generated
+pkg-config requirements, hosted-CI geometry, and provider generations. Generated header test names use Meson-safe
 `header-...` names rather than deprecated colon-bearing names.
 
-Shared and static builds must be tested separately. Release qualification also
-requires strict GCC and Clang builds, ASan/UBSan execution, public-header
-independence, SONAME and exported-symbol comparison, `DT_NEEDED` inspection,
-and independent patch replay.
+Shared and static builds are tested separately. Hosted release qualification
+runs GCC and Clang debug shared/static products, a GCC release product, and GCC
+and Clang ASan+UBSan shared products against one isolated current authority
+prefix. Each product runs the categorized native suite and then installs.
+
+The installed consumer uses only installed headers and pkg-config metadata. It
+constructs source/catalog/state authority, resolves and composes a transaction,
+creates build/check authority, admits a concrete check session, executes a
+public fake backend, round-trips durable evidence, and catches a
+`pkgcheck_exec::error` thrown inside the shared library. Static qualification
+uses `pkg-config --static`.
+
+On x86-64, the ABI-layout contract pins the foreign `libpkgcheck` and
+`libpkgexec` carriers plus the adapter values that retain them. Shared builds
+add exact export-manifest equality and `DT_NEEDED` generation checks. The final
+release gate also includes public-header independence, `git diff --check`,
+`git fsck`, and independent mailbox replay.

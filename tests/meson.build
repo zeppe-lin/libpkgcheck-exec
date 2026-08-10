@@ -66,18 +66,56 @@ foreach header : public_headers
   test('header-' + header.underscorify(), header_test, suite: 'header')
 endforeach
 
+sh = find_program('sh')
+
+test(
+  'pkgconfig-metadata',
+  find_program('contracts/check_pkgconfig_metadata.sh'),
+  args: [meson.project_build_root()],
+  suite: 'contract',
+)
+
+abi_layout = executable(
+  'abi-layout-test',
+  'contracts/abi_layout_test.cpp',
+  dependencies: libpkgcheck_exec_dep,
+)
+test('abi-layout', abi_layout, suite: 'contract')
+
+if library_kind == 'shared'
+  nm = find_program('nm')
+  test(
+    'abi-surface', sh,
+    args: [
+      meson.current_source_dir() / 'contracts/check_abi_surface.sh',
+      nm.full_path(),
+      libpkgcheck_exec.full_path(),
+      meson.project_source_root() / 'abi/libpkgcheck-exec.exports',
+    ],
+    suite: 'contract',
+  )
+  test(
+    'dependency-abi',
+    find_program('contracts/check_dependency_abi.sh'),
+    args: [libpkgcheck_exec.full_path()],
+    suite: 'contract',
+  )
+endif
+
 contract_tests = {
   'authority-contract': 'contracts/check_authority_contract.sh',
   'codec-contract': 'contracts/check_codec_contract.sh',
   'release-metadata': 'contracts/check_release_metadata.sh',
   'meson-sources': 'contracts/check_meson_sources.sh',
   'test-layout': 'contracts/check_test_layout.sh',
+  'abi-contract': 'contracts/check_abi_contract.sh',
+  'ci-contract': 'contracts/check_ci_contract.sh',
 }
 foreach name, program : contract_tests
   test(
     name,
-    find_program(program),
-    args: [meson.project_source_root(), meson.project_version()],
+    sh,
+    args: [meson.current_source_dir() / program, meson.project_source_root()],
     suite: 'contract',
   )
 endforeach

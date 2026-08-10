@@ -36,7 +36,13 @@ libpkgcheck_dep = dependency(
   version: ['>=0.2.0', '<1.0.0'],
   required: true,
   static: want_static,
-  fallback: ['libpkgcheck','libpkgcheck_dep']
+  fallback: ['libpkgcheck', 'libpkgcheck_dep'],
+  default_options: [
+    'default_library=' + library_kind,
+    'link_mode=' + get_option('link_mode'),
+    'man_pages=disabled',
+    'tests=disabled',
+  ],
 )
 
 libpkgexec_dep = dependency(
@@ -44,7 +50,13 @@ libpkgexec_dep = dependency(
   version: ['>=1.4.0', '<2.0.0'],
   required: true,
   static: want_static,
-  fallback: ['libpkgexec','libpkgexec_dep']
+  fallback: ['libpkgexec', 'libpkgexec_dep'],
+  default_options: [
+    'default_library=' + library_kind,
+    'link_mode=' + get_option('link_mode'),
+    'man_pages=disabled',
+    'tests=disabled',
+  ],
 )
 
 pkgconf = import('pkgconfig')

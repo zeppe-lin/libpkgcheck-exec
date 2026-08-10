@@ -1,5 +1,16 @@
 # Migration
 
+## 0.4.0
+
+The published `libpkgcheck 0.2.0` authority is `libpkgcheck.so.1`. Its public
+`check_request` and `check_result` carrier layouts differ from the generation
+used by the released `libpkgcheck-exec.so.0` line. `libpkgcheck-exec 0.4.0`
+therefore publishes `libpkgcheck-exec.so.1`. Rebuild consumers; do not mix
+objects compiled against the old carrier layout with the new provider.
+
+The project version remains 0.4.0 because this generation had not been tagged.
+No compatibility adapter is provided for the old check ABI.
+
 ## 0.3.0
 
 `package_input_tree` is replaced by `package_input_resource`.

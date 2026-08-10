@@ -27,6 +27,7 @@ enum class error_code {
 class error final : public std::runtime_error {
 public:
   error(error_code, std::string);
+  ~error() override;
 
   [[nodiscard]] error_code code() const noexcept;
 

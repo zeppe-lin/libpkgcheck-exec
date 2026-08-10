@@ -39,6 +39,8 @@ error::error(error_code code, std::string message)
 {
 }
 
+error::~error() = default;
+
 error_code error::code() const noexcept
 {
   return code_;
