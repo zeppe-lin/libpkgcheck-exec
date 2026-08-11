@@ -33,14 +33,14 @@ jobs:
       - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgbuild, ref: master, path: dependencies/libpkgbuild}}
       - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgtransaction, ref: master, path: dependencies/libpkgtransaction}}
       - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcheck, ref: v0.2.0, path: dependencies/libpkgcheck}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgexec, ref: 08814baf2dbc037a037f29dd7de218e5a19c7e77, path: dependencies/libpkgexec}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgexec, ref: 7a43592be970b6b9ac958d7c1b7e08483835b8ea, path: dependencies/libpkgexec}}
       - name: Verify qualified authority trees
         run: |
           test "$(git -C dependencies/libpkgresolve rev-parse 'HEAD^{tree}')" = 9e030b49606d5ac78bb1ee0c868681a37d0726cc
           test "$(git -C dependencies/libpkgbuild rev-parse 'HEAD^{tree}')" = 91b5326081cb5485ecaa3bcfb48829d34e653f10
           test "$(git -C dependencies/libpkgtransaction rev-parse 'HEAD^{tree}')" = 32f84467066fd2a6117c70b4907c67fbc04c6988
           test "$(git -C dependencies/libpkgcheck rev-parse 'HEAD^{tree}')" = da15d6d025f074ecc5ce14bdda228a3d32e0f49a
-          test "$(git -C dependencies/libpkgexec rev-parse 'HEAD^{tree}')" = 2a896dcd02ba8d1860eda29a1673ef03b0f2290f
+          test "$(git -C dependencies/libpkgexec rev-parse 'HEAD^{tree}')" = f697d51b8884dc444e11023a4fafe64e9dab0d8a
       - name: Install tools
         run: |
           sudo apt-get update
@@ -84,14 +84,14 @@ jobs:
       - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgbuild, ref: master, path: dependencies/libpkgbuild}}
       - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgtransaction, ref: master, path: dependencies/libpkgtransaction}}
       - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcheck, ref: v0.2.0, path: dependencies/libpkgcheck}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgexec, ref: 08814baf2dbc037a037f29dd7de218e5a19c7e77, path: dependencies/libpkgexec}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgexec, ref: 7a43592be970b6b9ac958d7c1b7e08483835b8ea, path: dependencies/libpkgexec}}
       - name: Verify qualified authority trees
         run: |
           test "$(git -C dependencies/libpkgresolve rev-parse 'HEAD^{tree}')" = 9e030b49606d5ac78bb1ee0c868681a37d0726cc
           test "$(git -C dependencies/libpkgbuild rev-parse 'HEAD^{tree}')" = 91b5326081cb5485ecaa3bcfb48829d34e653f10
           test "$(git -C dependencies/libpkgtransaction rev-parse 'HEAD^{tree}')" = 32f84467066fd2a6117c70b4907c67fbc04c6988
           test "$(git -C dependencies/libpkgcheck rev-parse 'HEAD^{tree}')" = da15d6d025f074ecc5ce14bdda228a3d32e0f49a
-          test "$(git -C dependencies/libpkgexec rev-parse 'HEAD^{tree}')" = 2a896dcd02ba8d1860eda29a1673ef03b0f2290f
+          test "$(git -C dependencies/libpkgexec rev-parse 'HEAD^{tree}')" = f697d51b8884dc444e11023a4fafe64e9dab0d8a
       - name: Install tools
         run: |
           sudo apt-get update

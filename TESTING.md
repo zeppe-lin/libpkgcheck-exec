@@ -65,7 +65,9 @@ public fake backend, round-trips durable evidence, and catches a
 uses `pkg-config --static`.
 
 On x86-64, the ABI-layout contract pins the foreign `libpkgcheck` and
-`libpkgexec` carriers plus the adapter values that retain them. Shared builds
-add exact export-manifest equality and `DT_NEEDED` generation checks. The final
+`libpkgexec` carriers plus the adapter values that retain them. The exec2 bridge
+keeps those layouts byte-for-byte stable while shared builds require a direct
+`libpkgexec.so.2` edge and reject exec0/exec1 providers. Shared builds also add
+exact export-manifest equality. The final
 release gate also includes public-header independence, `git diff --check`,
 `git fsck`, and independent mailbox replay.

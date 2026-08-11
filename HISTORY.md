@@ -11,6 +11,8 @@ Date: 2026-08-10
 - Freeze an exact reviewed ELF surface and anchor public exception RTTI.
 - Qualify exact check/exec provider generations, installed shared/static
   consumption, GCC/Clang builds, and ASan/UBSan execution.
+- Bind execution authority to `libpkgexec 2.x` / `libpkgexec.so.2` after
+  proving all retained execution carriers preserve the 0.4 ABI layouts.
 - Separate unit, integration, protocol, header, and contract qualification.
 - Pin request-scoped cancellation, backend-contract, and resource-admission
   semantics independently.

@@ -17,9 +17,9 @@ normalize() { sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]
 requires=$(sed -n 's/^Requires:[[:space:]]*//p' "$metadata" | tr ',' '\n' | normalize)
 expected='libpkgcheck >= 0.2.0
 libpkgcheck < 1.0.0
-libpkgexec >= 1.4.0
-libpkgexec < 2.0.0'
-for requirement in 'libpkgcheck >= 0.2.0' 'libpkgcheck < 1.0.0' 'libpkgexec >= 1.4.0' 'libpkgexec < 2.0.0'; do
+libpkgexec >= 2.0.0
+libpkgexec < 3.0.0'
+for requirement in 'libpkgcheck >= 0.2.0' 'libpkgcheck < 1.0.0' 'libpkgexec >= 2.0.0' 'libpkgexec < 3.0.0'; do
   count=$(printf '%s\n' "$requires" | grep -Fxc "$requirement" || true)
   [ "$count" -eq 1 ] || fail "metadata contains $count copies of '$requirement', expected exactly one"
 done

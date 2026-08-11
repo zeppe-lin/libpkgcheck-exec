@@ -11,6 +11,11 @@ objects compiled against the old carrier layout with the new provider.
 The project version remains 0.4.0 because this generation had not been tagged.
 No compatibility adapter is provided for the old check ABI.
 
+The execution dependency is now `libpkgexec >= 2.0.0, < 3.0.0`. The exec1 to
+exec2 transition preserves every execution carrier retained by this adapter, so
+`libpkgcheck-exec.so.1` remains the truthful ABI generation. Durable subordinate
+execution evidence remains libpkgexec execution-result encoding version 1.
+
 ## 0.3.0
 
 `package_input_tree` is replaced by `package_input_resource`.

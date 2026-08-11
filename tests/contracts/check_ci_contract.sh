@@ -12,7 +12,7 @@ qualify=$root/ci/qualify.sh
 [ -x "$qualify" ] || fail 'repository qualification driver is absent or not executable'
 for mode in 'GCC shared' 'GCC static' 'Clang shared' 'Clang static' 'GCC release'; do grep -F "$mode" "$workflow" >/dev/null || fail "CI omits $mode"; done
 grep -F 'address,undefined' "$workflow" >/dev/null || fail 'CI omits ASan/UBSan qualification'
-for tree in da15d6d025f074ecc5ce14bdda228a3d32e0f49a 2a896dcd02ba8d1860eda29a1673ef03b0f2290f; do
+for tree in da15d6d025f074ecc5ce14bdda228a3d32e0f49a f697d51b8884dc444e11023a4fafe64e9dab0d8a; do
   grep -F "$tree" "$workflow" >/dev/null || fail "CI omits authority tree $tree"
 done
 grep -F 'pkg-config --static --libs libpkgcheck-exec' "$driver" >/dev/null || fail 'static installed consumer does not use pkg-config --static'

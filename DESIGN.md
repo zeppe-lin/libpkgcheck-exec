@@ -85,8 +85,8 @@ test frameworks; or publish progression evidence.
 
 The durable record belongs to this adapter because it binds exact
 `libpkgexec` process evidence to the corresponding terminal `libpkgcheck`
-result. The record embeds the canonical `libpkgexec 1.4` execution-result
-encoding and adds only adapter-owned outcome, execution-evidence,
+result. The record embeds canonical `libpkgexec` execution-result encoding
+version 1 and adds only adapter-owned outcome, execution-evidence,
 failure-classification, failure-evidence, and check-result identities.
 
 The record does not serialize a check request, execution request, backend
