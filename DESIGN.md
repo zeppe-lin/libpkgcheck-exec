@@ -49,11 +49,18 @@ writable. The checked package tree is the working directory.
 The logical layout is fixed:
 
 ```
-/check/source        read-only source resource
-/check/package       read-only checked package resource and working directory
-/check/inputs/<id>   one read-only logical check-input resource
-/tmp                 writable private temporary tree
+/check/source          read-only source resource
+/check/inputs/package  read-only checked package resource and working directory
+/check/inputs/<id>     one read-only logical check-input resource
+/tmp                   writable private temporary tree
 ```
+
+The checked package is a `build_input_tree`, so it shares the dedicated empty
+`/check/inputs` namespace with logical check inputs.  A process backend owns
+the children of that namespace; the caller-owned root view supplies only the
+empty parent.  This keeps input realization private to execution and prevents
+the adapter from requiring a pre-existing checked-package leaf in the root
+view.
 
 Host paths remain call-scoped operational coordinates. Changing only those
 coordinates changes `execution_resources`, not the semantic execution-request

@@ -21,7 +21,7 @@ namespace pkgcheck_exec {
 namespace {
 
 constexpr std::string_view source_path = "/check/source";
-constexpr std::string_view package_path = "/check/package";
+constexpr std::string_view package_path = "/check/inputs/package";
 constexpr std::string_view input_path_prefix = "/check/inputs/";
 constexpr std::string_view temporary_path = "/tmp";
 constexpr std::string_view home_path = "/tmp/home";

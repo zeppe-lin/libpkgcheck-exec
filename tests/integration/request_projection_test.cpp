@@ -87,7 +87,7 @@ void prove_exact_bindings()
   const auto& package = request.resources().binding(package_slot);
   TEST_CHECK(package.resource() == session.package().tree);
   TEST_CHECK(package.access() == pkgexec::resource_access::read_only);
-  TEST_CHECK(package.mount_point().string() == "/check/package");
+  TEST_CHECK(package.mount_point().string() == "/check/inputs/package");
 
   const auto& temporary = request.resources().binding(temporary_slot);
   TEST_CHECK(temporary.access() == pkgexec::resource_access::writable);
