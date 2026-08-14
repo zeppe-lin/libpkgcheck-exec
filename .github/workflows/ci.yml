@@ -26,21 +26,14 @@ jobs:
       CXX: ${{ matrix.cxx }}
     steps:
       - uses: actions/checkout@v4
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgsource, ref: 9a2a85c85c20bbfa77306f3eb14ccc67ac1e800c, path: dependencies/libpkgsource}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcatalog, ref: 16976cac176f576871e327d5d2f6fe9d9dfa0666, path: dependencies/libpkgcatalog}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgsource, ref: v4.1.0, path: dependencies/libpkgsource}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcatalog, ref: v4.0.0, path: dependencies/libpkgcatalog}}
       - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgstate, ref: f74df278b47b48e798c3de01c922c59b58319d13, path: dependencies/libpkgstate}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgresolve, ref: master, path: dependencies/libpkgresolve}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgbuild, ref: master, path: dependencies/libpkgbuild}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgtransaction, ref: master, path: dependencies/libpkgtransaction}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcheck, ref: v0.2.0, path: dependencies/libpkgcheck}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgexec, ref: 7a43592be970b6b9ac958d7c1b7e08483835b8ea, path: dependencies/libpkgexec}}
-      - name: Verify qualified authority trees
-        run: |
-          test "$(git -C dependencies/libpkgresolve rev-parse 'HEAD^{tree}')" = 9e030b49606d5ac78bb1ee0c868681a37d0726cc
-          test "$(git -C dependencies/libpkgbuild rev-parse 'HEAD^{tree}')" = 91b5326081cb5485ecaa3bcfb48829d34e653f10
-          test "$(git -C dependencies/libpkgtransaction rev-parse 'HEAD^{tree}')" = 32f84467066fd2a6117c70b4907c67fbc04c6988
-          test "$(git -C dependencies/libpkgcheck rev-parse 'HEAD^{tree}')" = da15d6d025f074ecc5ce14bdda228a3d32e0f49a
-          test "$(git -C dependencies/libpkgexec rev-parse 'HEAD^{tree}')" = f697d51b8884dc444e11023a4fafe64e9dab0d8a
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgresolve, ref: v4.0.0, path: dependencies/libpkgresolve}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgbuild, ref: v3.0.1, path: dependencies/libpkgbuild}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgtransaction, ref: v4.0.0, path: dependencies/libpkgtransaction}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcheck, ref: v0.3.0, path: dependencies/libpkgcheck}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgexec, ref: v2.1.1, path: dependencies/libpkgexec}}
       - name: Install tools
         run: |
           sudo apt-get update
@@ -77,21 +70,14 @@ jobs:
       UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1:print_stacktrace=1
     steps:
       - uses: actions/checkout@v4
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgsource, ref: 9a2a85c85c20bbfa77306f3eb14ccc67ac1e800c, path: dependencies/libpkgsource}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcatalog, ref: 16976cac176f576871e327d5d2f6fe9d9dfa0666, path: dependencies/libpkgcatalog}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgsource, ref: v4.1.0, path: dependencies/libpkgsource}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcatalog, ref: v4.0.0, path: dependencies/libpkgcatalog}}
       - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgstate, ref: f74df278b47b48e798c3de01c922c59b58319d13, path: dependencies/libpkgstate}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgresolve, ref: master, path: dependencies/libpkgresolve}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgbuild, ref: master, path: dependencies/libpkgbuild}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgtransaction, ref: master, path: dependencies/libpkgtransaction}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcheck, ref: v0.2.0, path: dependencies/libpkgcheck}}
-      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgexec, ref: 7a43592be970b6b9ac958d7c1b7e08483835b8ea, path: dependencies/libpkgexec}}
-      - name: Verify qualified authority trees
-        run: |
-          test "$(git -C dependencies/libpkgresolve rev-parse 'HEAD^{tree}')" = 9e030b49606d5ac78bb1ee0c868681a37d0726cc
-          test "$(git -C dependencies/libpkgbuild rev-parse 'HEAD^{tree}')" = 91b5326081cb5485ecaa3bcfb48829d34e653f10
-          test "$(git -C dependencies/libpkgtransaction rev-parse 'HEAD^{tree}')" = 32f84467066fd2a6117c70b4907c67fbc04c6988
-          test "$(git -C dependencies/libpkgcheck rev-parse 'HEAD^{tree}')" = da15d6d025f074ecc5ce14bdda228a3d32e0f49a
-          test "$(git -C dependencies/libpkgexec rev-parse 'HEAD^{tree}')" = f697d51b8884dc444e11023a4fafe64e9dab0d8a
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgresolve, ref: v4.0.0, path: dependencies/libpkgresolve}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgbuild, ref: v3.0.1, path: dependencies/libpkgbuild}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgtransaction, ref: v4.0.0, path: dependencies/libpkgtransaction}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgcheck, ref: v0.3.0, path: dependencies/libpkgcheck}}
+      - {uses: actions/checkout@v4, with: {repository: zeppe-lin/libpkgexec, ref: v2.1.1, path: dependencies/libpkgexec}}
       - name: Install tools
         run: |
           sudo apt-get update

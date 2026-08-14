@@ -33,7 +33,7 @@ libpkgcheck_exec = library(
   link_depends: [elf_export_script],
   install: true,
   version: meson.project_version(),
-  soversion: '1',
+  soversion: '2',
 )
 
 libpkgcheck_exec_consumer_deps = public_deps

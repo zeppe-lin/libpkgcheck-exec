@@ -3,7 +3,7 @@
 #include <libpkgcheck-exec/libpkgcheck-exec.h>
 
 static_assert(sizeof(void*) == 8,
-              "libpkgcheck-exec 0.4 ABI layout contract requires 64-bit pointers");
+              "libpkgcheck-exec 0.5 ABI layout contract requires 64-bit pointers");
 static_assert(sizeof(pkgcheck::check_request) == 3944);
 static_assert(sizeof(pkgcheck::check_result) == 4064);
 static_assert(sizeof(pkgexec::execution_request) == 720);

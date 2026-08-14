@@ -20,8 +20,9 @@ outer size is not sufficient evidence of ABI compatibility.
 `admitted_check_session`, `prepared_execution`, and `check_execution_result`
 retain `libpkgexec` values by value. Any `libpkgexec` ABI-generation change
 therefore requires explicit carrier-layout and provider-edge review before the
-dependency interval is widened. The exec1 -> exec2 transition preserves every
-retained carrier layout, so `libpkgcheck-exec.so.1` remains truthful.
+dependency interval is widened. The exec1 -> exec2 transition preserved every retained execution carrier layout.
+The check1 -> check2 transition does not preserve the retained check authority
+generation, so `libpkgcheck-exec 0.5.0` publishes `libpkgcheck-exec.so.2`.
 
 Release qualification must execute the installed product, not merely the
 source tree. The shared product must match `abi/libpkgcheck-exec.exports`

@@ -12,14 +12,14 @@ fail() {
 if [ ! -s "$metadata" ]; then metadata=$(find "$build_root" -type f -name libpkgcheck-exec.pc -print | sed -n '1p'); fi
 [ -n "${metadata:-}" ] && [ -s "$metadata" ] || fail 'generated libpkgcheck-exec.pc was not found'
 [ "$(sed -n 's/^Name:[[:space:]]*//p' "$metadata")" = libpkgcheck-exec ] || fail 'wrong module name'
-[ "$(sed -n 's/^Version:[[:space:]]*//p' "$metadata")" = 0.4.0 ] || fail 'wrong module version'
+[ "$(sed -n 's/^Version:[[:space:]]*//p' "$metadata")" = 0.5.0 ] || fail 'wrong module version'
 normalize() { sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/ *\([<>]=\|[<>=]\) */ \1 /' -e '/^$/d'; }
 requires=$(sed -n 's/^Requires:[[:space:]]*//p' "$metadata" | tr ',' '\n' | normalize)
-expected='libpkgcheck >= 0.2.0
+expected='libpkgcheck >= 0.3.0
 libpkgcheck < 1.0.0
-libpkgexec >= 2.0.0
+libpkgexec >= 2.1.1
 libpkgexec < 3.0.0'
-for requirement in 'libpkgcheck >= 0.2.0' 'libpkgcheck < 1.0.0' 'libpkgexec >= 2.0.0' 'libpkgexec < 3.0.0'; do
+for requirement in 'libpkgcheck >= 0.3.0' 'libpkgcheck < 1.0.0' 'libpkgexec >= 2.1.1' 'libpkgexec < 3.0.0'; do
   count=$(printf '%s\n' "$requires" | grep -Fxc "$requirement" || true)
   [ "$count" -eq 1 ] || fail "metadata contains $count copies of '$requirement', expected exactly one"
 done

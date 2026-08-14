@@ -18,5 +18,5 @@ grep -F 'pkgcheck_exec::admitted_check_session::admit(' "$demangled" >/dev/null 
 grep -F 'pkgcheck_exec::execute(' "$demangled" >/dev/null || fail 'execution entry point is absent from reviewed ABI'
 grep -F 'pkgcheck_exec::encode_check_execution_result(' "$demangled" >/dev/null || fail 'durable encoder is absent from reviewed ABI'
 grep -F 'typeinfo for pkgcheck_exec::error' "$demangled" >/dev/null || fail 'public error RTTI is absent from reviewed ABI'
-grep -F "soversion: '1'" "$root/src/meson.build" >/dev/null || fail 'SONAME generation is not 1'
+grep -F "soversion: '2'" "$root/src/meson.build" >/dev/null || fail 'SONAME generation is not 2'
 grep -F -- '--version-script=' "$root/src/meson.build" >/dev/null || fail 'reviewed ELF export manifest is not linked'

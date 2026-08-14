@@ -1,5 +1,16 @@
 # History
 
+Version: 0.5.0
+Date: 2026-08-14
+
+- Rebuild the public execution carrier as `libpkgcheck-exec.so.2` for
+  `libpkgcheck 0.3.0` / `libpkgcheck.so.2`.
+- Preserve check-execution semantics and durable codec generation; this release
+  changes the retained subordinate check ABI authority, not the outer protocol.
+- Keep the reviewed `libpkgexec.so.2` execution provider generation unchanged.
+- Require `libpkgexec >= 2.1.1, < 3.0.0`, excluding the tagged
+  execution-2 build that still admitted source ABI 3.
+
 Version: 0.4.0
 Date: 2026-08-10
 
