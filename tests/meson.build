@@ -71,7 +71,7 @@ sh = find_program('sh')
 test(
   'pkgconfig-metadata',
   find_program('contracts/check_pkgconfig_metadata.sh'),
-  args: [meson.project_build_root()],
+  args: [meson.project_build_root(), meson.project_version()],
   suite: 'contract',
 )
 

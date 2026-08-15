@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 set -eu
 build_root=${1:?build root required}
+expected_version=${2:?expected module version required}
 metadata=$build_root/meson-private/libpkgcheck-exec.pc
 fail() {
   echo "metadata-test: $*" >&2
@@ -12,7 +13,7 @@ fail() {
 if [ ! -s "$metadata" ]; then metadata=$(find "$build_root" -type f -name libpkgcheck-exec.pc -print | sed -n '1p'); fi
 [ -n "${metadata:-}" ] && [ -s "$metadata" ] || fail 'generated libpkgcheck-exec.pc was not found'
 [ "$(sed -n 's/^Name:[[:space:]]*//p' "$metadata")" = libpkgcheck-exec ] || fail 'wrong module name'
-[ "$(sed -n 's/^Version:[[:space:]]*//p' "$metadata")" = 0.5.0 ] || fail 'wrong module version'
+[ "$(sed -n 's/^Version:[[:space:]]*//p' "$metadata")" = "$expected_version" ] || fail 'wrong module version'
 normalize() { sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/ *\([<>]=\|[<>=]\) */ \1 /' -e '/^$/d'; }
 requires=$(sed -n 's/^Requires:[[:space:]]*//p' "$metadata" | tr ',' '\n' | normalize)
 expected='libpkgcheck >= 0.3.0

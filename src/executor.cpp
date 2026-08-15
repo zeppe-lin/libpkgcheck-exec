@@ -72,8 +72,7 @@ pkgexec::resource_identity temporary_resource_identity(
   return pkgexec::resource_identity::from_sha256(sha256_hex(material));
 }
 
-std::vector<pkgexec::environment_variable> environment_variables(
-    const admitted_check_session& session)
+std::vector<pkgexec::environment_variable> environment_variables()
 {
   std::vector<pkgexec::environment_variable> variables;
   variables.emplace_back("PKG_SOURCE_ROOT", std::string(source_path));
@@ -97,7 +96,7 @@ pkgexec::environment_policy environment_for(
       stdin_policy::closed,
       stream_policy::capture_complete,
       stream_policy::capture_complete,
-      environment_variables(session));
+      environment_variables());
 }
 
 pkgexec::credential_policy credentials_for(
