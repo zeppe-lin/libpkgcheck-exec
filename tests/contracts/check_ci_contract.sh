@@ -12,7 +12,7 @@ qualify=$root/ci/qualify.sh
 [ -x "$qualify" ] || fail 'repository qualification driver is absent or not executable'
 for mode in 'GCC shared' 'GCC static' 'Clang shared' 'Clang static' 'GCC release'; do grep -F "$mode" "$workflow" >/dev/null || fail "CI omits $mode"; done
 grep -F 'address,undefined' "$workflow" >/dev/null || fail 'CI omits ASan/UBSan qualification'
-for pin in 'libpkgsource, ref: v4.1.0' 'libpkgcatalog, ref: v4.0.0' 'libpkgresolve, ref: v4.0.0' 'libpkgbuild, ref: v3.0.1' 'libpkgtransaction, ref: v4.0.0' 'libpkgcheck, ref: v0.3.0' 'libpkgexec, ref: v2.1.1'; do
+for pin in 'libpkgsource, ref: v4.1.0' 'libpkgcatalog, ref: v4.0.0' 'libpkgresolve, ref: v4.0.0' 'libpkgbuild, ref: v3.0.1' 'libpkgtransaction, ref: v4.0.0' 'libpkgcheck, ref: v0.3.0' 'libpkgexec, ref: v2.2.0'; do
   grep -F "$pin" "$workflow" >/dev/null || fail "CI omits authority pin $pin"
 done
 ! grep -F 'ref: master' "$workflow" >/dev/null || fail 'CI admits floating dependency authority'

@@ -50,7 +50,7 @@ The logical layout is fixed:
 
 ```
 /check/source           read-only source resource
-/check/inputs/_package  read-only checked package resource and working directory
+/check/package         read-only checked package resource and working directory
 /check/inputs/<name>    one read-only logical check-input resource
 /tmp                    writable private temporary tree
 ```
@@ -60,7 +60,7 @@ distribution-branded aliases:
 
 ```
 PKG_SOURCE_ROOT=/check/source
-PKG_PACKAGE_ROOT=/check/inputs/_package
+PKG_PACKAGE_ROOT=/check/package
 PKG_CHECK_INPUT_ROOT=/check/inputs
 PKG_CHECK_INPUTS=<colon-separated canonical package names>
 ```
@@ -73,13 +73,11 @@ names already retained by each `pkgbuild::build_input`; recipes never need to
 derive or embed opaque `build_input_identity` values. `PKG_CHECK_INPUTS` follows
 the canonical input order already sealed by `libpkgcheck`.
 
-The checked package is a `build_input_tree`, so it shares the dedicated empty
-`/check/inputs` namespace with logical check inputs. A process backend owns the
-children of that namespace; the caller-owned root view supplies only the empty
-parent. `_package` is reserved for the checked package because canonical package
-names begin with a lowercase letter and therefore cannot collide with it. This
-keeps input realization private to execution and prevents the adapter from
-requiring pre-existing input leaves in the root view.
+The checked package is the singleton `package_tree` subject of the check. It is
+not a member of the named check-input namespace. The caller-owned root view
+therefore supplies the exact `/check/package` structural destination, while a
+process backend owns only the package-name children beneath the otherwise empty
+`/check/inputs` dependency namespace.
 
 Host paths remain call-scoped operational coordinates. Changing only those
 coordinates changes `execution_resources`, not the semantic execution-request

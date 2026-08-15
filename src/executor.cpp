@@ -21,7 +21,7 @@ namespace pkgcheck_exec {
 namespace {
 
 constexpr std::string_view source_path = "/check/source";
-constexpr std::string_view package_path = "/check/inputs/_package";
+constexpr std::string_view package_path = "/check/package";
 constexpr std::string_view input_path_prefix = "/check/inputs/";
 constexpr std::string_view check_input_root = "/check/inputs";
 constexpr std::string_view temporary_path = "/tmp";
@@ -206,8 +206,8 @@ pkgexec::execution_request seal_execution_request(
 
   const auto source_slot = resource_slot::named(
       resource_role::source_tree, "checked-source");
-  const auto package_slot = resource_slot::named(
-      resource_role::build_input_tree, "checked-package");
+  const auto package_slot = resource_slot::singleton(
+      resource_role::package_tree);
   const auto temporary_slot = resource_slot::singleton(
       resource_role::private_temporary_root);
 
@@ -261,8 +261,8 @@ prepared_execution prepare(const admitted_check_session& session)
 
   const auto source_slot = resource_slot::named(
       resource_role::source_tree, "checked-source");
-  const auto package_slot = resource_slot::named(
-      resource_role::build_input_tree, "checked-package");
+  const auto package_slot = resource_slot::singleton(
+      resource_role::package_tree);
   const auto temporary_slot = resource_slot::singleton(
       resource_role::private_temporary_root);
   auto request = seal_execution_request(session);

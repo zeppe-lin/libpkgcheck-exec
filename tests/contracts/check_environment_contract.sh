@@ -27,8 +27,12 @@ grep -F 'package_input_name(logical)' "$executor" >/dev/null || \
   fail 'logical check inputs are not projected by package name'
 grep -F 'std::string(input_path_prefix) + name' "$executor" >/dev/null || \
   fail 'check-input mount path is not package-addressable'
-grep -F 'constexpr std::string_view package_path = "/check/inputs/_package";' "$executor" >/dev/null || \
-  fail 'checked package does not use the reserved non-package child'
+grep -F 'resource_role::package_tree' "$executor" >/dev/null || \
+  fail 'checked package is not projected with package-tree authority'
+grep -F 'resource_role::build_input_tree, "checked-package"' "$executor" >/dev/null && \
+  fail 'checked package is still misclassified as a build input'
+grep -F 'constexpr std::string_view package_path = "/check/package";' "$executor" >/dev/null || \
+  fail 'checked package does not use its phase-local subject path'
 
 for doc in README.md DESIGN.md TESTING.md MAINTAINING.md man/libpkgcheck-exec.7.scdoc; do
   for variable in PKG_SOURCE_ROOT PKG_PACKAGE_ROOT PKG_CHECK_INPUT_ROOT PKG_CHECK_INPUTS; do

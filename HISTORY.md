@@ -1,5 +1,16 @@
 # History
 
+Version: 0.8.0
+Date: 2026-08-15
+
+- Project the checked package as the singleton `pkgexec::package_tree` subject
+  instead of misclassifying it as a named build input.
+- Move `PKG_PACKAGE_ROOT` to `/check/package`; keep `/check/inputs/<name>`
+  exclusively for recipe-addressable check dependencies.
+- Require `libpkgexec >= 2.2.0, < 3.0.0`; keep exact check-input admission by
+  `build_input_identity` and keep `libpkgcheck-exec.so.2` unchanged.
+- Remove the `_package` namespace workaround rather than retaining an alias.
+
 Version: 0.7.0
 Date: 2026-08-15
 

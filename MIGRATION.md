@@ -1,5 +1,17 @@
 # Migration
 
+## 0.8.0
+
+The package under test is now a distinct singleton execution subject.
+`PKG_PACKAGE_ROOT` moves from `/check/inputs/_package` to `/check/package`, and
+`/check/inputs` contains check dependencies only. Callers must provide the exact
+`/check/package` structural destination in the root view. No `_package`
+alias is retained.
+
+This changes semantic execution-request identity but not public C++ carrier
+layout; the SONAME remains 2. Existing private 0.7 execution evidence requires
+its exact old request authority.
+
 ## 0.7.0
 
 Check-input execution is now recipe-addressable by canonical package name.

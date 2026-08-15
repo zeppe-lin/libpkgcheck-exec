@@ -5,11 +5,11 @@ set -eu
 root=${1:?source root required}
 fail() { echo "release-metadata: $*" >&2; exit 1; }
 version=$(sed -n "s/^[[:space:]]*version: '\([^']*\)'.*/\1/p" "$root/meson.build" | head -n 1)
-[ "$version" = 0.7.0 ] || fail "project version is '$version', expected 0.7.0"
-grep -F 'Version: 0.7.0' "$root/HISTORY.md" >/dev/null || fail 'HISTORY omits 0.7.0'
+[ "$version" = 0.8.0 ] || fail "project version is '$version', expected 0.8.0"
+grep -F 'Version: 0.8.0' "$root/HISTORY.md" >/dev/null || fail 'HISTORY omits 0.8.0'
 grep -F "soversion: '2'" "$root/src/meson.build" >/dev/null || fail 'shared library is not SONAME 2'
 block() { sed -n "/^[[:space:]]*'$1',[[:space:]]*$/,/^[[:space:]]*)/p" "$root/meson.build"; }
-for spec in 'libpkgcheck >=0.3.0 <1.0.0' 'libpkgexec >=2.1.1 <3.0.0'; do
+for spec in 'libpkgcheck >=0.3.0 <1.0.0' 'libpkgexec >=2.2.0 <3.0.0'; do
   set -- $spec; dep=$1; lo=$2; hi=$3; b=$(block "$dep")
   printf '%s\n' "$b" | grep -F "'$lo'" >/dev/null || fail "$dep omits $lo"
   printf '%s\n' "$b" | grep -F "'$hi'" >/dev/null || fail "$dep omits $hi"

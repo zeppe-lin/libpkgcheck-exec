@@ -36,9 +36,8 @@ void prove_exact_projection()
   TEST_CHECK(request.interpreter() == session.identity().interpreter);
   TEST_CHECK(request.root_view() == session.paths().root_view);
   TEST_CHECK(request.resources().working_directory() ==
-             pkgexec::resource_slot::named(
-                 pkgexec::resource_role::build_input_tree,
-                 "checked-package"));
+             pkgexec::resource_slot::singleton(
+                 pkgexec::resource_role::package_tree));
 
   const auto& environment = request.environment();
   TEST_CHECK(environment.network() == pkgexec::network_policy::denied);
@@ -59,7 +58,7 @@ void prove_exact_projection()
   TEST_CHECK(environment.additional_variables()[1].value() == "/check/inputs");
   TEST_CHECK(environment.additional_variables()[2].name() == "PKG_PACKAGE_ROOT");
   TEST_CHECK(environment.additional_variables()[2].value() ==
-             "/check/inputs/_package");
+             "/check/package");
   TEST_CHECK(environment.additional_variables()[3].name() == "PKG_SOURCE_ROOT");
   TEST_CHECK(environment.additional_variables()[3].value() == "/check/source");
 
@@ -84,8 +83,8 @@ void prove_exact_bindings()
 
   const auto source_slot = pkgexec::resource_slot::named(
       pkgexec::resource_role::source_tree, "checked-source");
-  const auto package_slot = pkgexec::resource_slot::named(
-      pkgexec::resource_role::build_input_tree, "checked-package");
+  const auto package_slot = pkgexec::resource_slot::singleton(
+      pkgexec::resource_role::package_tree);
   const auto temporary_slot = pkgexec::resource_slot::singleton(
       pkgexec::resource_role::private_temporary_root);
 
@@ -97,7 +96,7 @@ void prove_exact_bindings()
   const auto& package = request.resources().binding(package_slot);
   TEST_CHECK(package.resource() == session.package().tree);
   TEST_CHECK(package.access() == pkgexec::resource_access::read_only);
-  TEST_CHECK(package.mount_point().string() == "/check/inputs/_package");
+  TEST_CHECK(package.mount_point().string() == "/check/package");
 
   const auto& temporary = request.resources().binding(temporary_slot);
   TEST_CHECK(temporary.access() == pkgexec::resource_access::writable);
