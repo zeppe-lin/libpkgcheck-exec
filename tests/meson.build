@@ -104,6 +104,7 @@ endif
 
 contract_tests = {
   'authority-contract': 'contracts/check_authority_contract.sh',
+  'environment-contract': 'contracts/check_environment_contract.sh',
   'codec-contract': 'contracts/check_codec_contract.sh',
   'release-metadata': 'contracts/check_release_metadata.sh',
   'meson-sources': 'contracts/check_meson_sources.sh',

@@ -32,5 +32,9 @@ crypto and thread closure is exercised.
 
 The check-program environment is part of execution policy. Keep
 `PKG_SOURCE_ROOT` and `PKG_PACKAGE_ROOT` semantic meanings stable across build
-and check integration. Do not add distribution-branded aliases or infer an
-unpacked workspace from the admitted source resource.
+and check integration. Its current projection is deliberately
+session-independent: do not add package identity convenience variables merely
+because an admitted session can provide them. Do not add distribution-branded
+aliases or infer an unpacked workspace from the admitted source resource. The
+environment contract must pin both the source projection and these documentation
+claims before release.

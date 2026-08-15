@@ -38,5 +38,6 @@ grep -F "'pkgconfig-metadata'" "$meson" >/dev/null
 grep -F "'abi-layout'" "$meson" >/dev/null
 grep -F "'abi-surface'" "$meson" >/dev/null
 grep -F "'dependency-abi'" "$meson" >/dev/null
+grep -F "'environment-contract': 'contracts/check_environment_contract.sh'" "$meson" >/dev/null
 grep -F "'abi-contract': 'contracts/check_abi_contract.sh'" "$meson" >/dev/null
 grep -F "'ci-contract': 'contracts/check_ci_contract.sh'" "$meson" >/dev/null

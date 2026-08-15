@@ -65,7 +65,10 @@ PKG_PACKAGE_ROOT=/check/inputs/package
 
 `PKG_SOURCE_ROOT` is the exact caller-admitted source resource. This adapter
 does not reinterpret it as an unpacked workspace. `PKG_PACKAGE_ROOT` is the
-sealed checked-package resource and working directory.
+sealed checked-package resource and working directory. The environment
+vocabulary and values are fixed by this projection and do not vary with
+package name, version, release, or other admitted-session identity. Such
+identity convenience variables are not part of this execution ABI.
 
 The checked package is a `build_input_tree`, so it shares the dedicated empty
 `/check/inputs` namespace with logical check inputs.  A process backend owns

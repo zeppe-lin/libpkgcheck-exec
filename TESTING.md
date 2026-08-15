@@ -20,9 +20,9 @@ resource identities.
 Request-projection tests prove exact check purpose, program/interpreter/root
 authority, read-only source/package/input bindings, the writable private
 temporary root, exact `PKG_SOURCE_ROOT` and `PKG_PACKAGE_ROOT` environment
-projection, absence of branded check aliases, closed I/O, denied networking,
-exact credentials and limits, and that the current adapter deliberately seals
-cancellation as disabled. Host
+projection, absence of package-identity conveniences and branded check aliases,
+closed I/O, denied networking, exact credentials and limits, and that the
+current adapter deliberately seals cancellation as disabled. Host
 materialization paths do not contaminate semantic request identity. An
 adapter-owned temporary-resource collision is refused by the pure projection
 before preparation.
@@ -51,7 +51,9 @@ execution request, or backend profile.
 Every installed public header is compiled independently. Static contracts pin
 the authority boundary, codec exclusions, release metadata, Meson source set,
 role-separated test layout, exact ABI surface, carrier layouts, generated
-pkg-config requirements, hosted-CI geometry, and provider generations. Generated header test names use Meson-safe
+pkg-config requirements, hosted-CI geometry, provider generations, and the
+check-program environment contract across implementation and documentation.
+Generated header test names use Meson-safe
 `header-...` names rather than deprecated colon-bearing names.
 
 Shared and static builds are tested separately. Hosted release qualification

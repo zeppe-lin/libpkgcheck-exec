@@ -80,8 +80,7 @@ std::vector<pkgexec::environment_variable> environment_variables()
   return variables;
 }
 
-pkgexec::environment_policy environment_for(
-    const admitted_check_session& session)
+pkgexec::environment_policy environment_for()
 {
   using namespace pkgexec;
 
@@ -210,7 +209,7 @@ pkgexec::execution_request seal_execution_request(
       session.identity().interpreter,
       session.paths().root_view,
       std::move(layout),
-      environment_for(session),
+      environment_for(),
       credentials_for(session),
       session.limits(),
       cancellation_policy::disabled());
