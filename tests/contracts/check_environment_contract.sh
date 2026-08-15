@@ -18,8 +18,8 @@ for variable in PKG_SOURCE_ROOT PKG_PACKAGE_ROOT PKG_CHECK_INPUT_ROOT PKG_CHECK_
 done
 count=$(grep -c 'variables.emplace_back(' "$executor")
 [ "$count" -eq 4 ] || fail "environment projection exports $count variables, expected 4"
-actual_names=$(grep -o '"PKG_[A-Z0-9_]*"' "$executor" | tr -d '"' | sort -u)
-expected_names=$(printf '%s\n' PKG_CHECK_INPUTS PKG_CHECK_INPUT_ROOT PKG_PACKAGE_ROOT PKG_SOURCE_ROOT)
+actual_names=$(grep -o '"PKG_[A-Z0-9_]*"' "$executor" | tr -d '"' | LC_ALL=C sort -u)
+expected_names=$(printf '%s\n' PKG_CHECK_INPUTS PKG_CHECK_INPUT_ROOT PKG_PACKAGE_ROOT PKG_SOURCE_ROOT | LC_ALL=C sort -u)
 [ "$actual_names" = "$expected_names" ] || \
   fail "unexpected PKG_* environment vocabulary: $actual_names"
 
