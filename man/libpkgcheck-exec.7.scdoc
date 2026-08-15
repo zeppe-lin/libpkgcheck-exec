@@ -30,6 +30,11 @@ and mutually disjoint after lexical normalization. Distinct admitted semantic
 resources must not share one concrete resource identity. The root-view path is
 a separate namespace coordinate and may be the filesystem root.
 
+Check programs receive *PKG_SOURCE_ROOT=/check/source* for the exact admitted
+read-only source resource and *PKG_PACKAGE_ROOT=/check/inputs/package* for the
+sealed checked package. No distribution-branded check environment aliases are
+exported.
+
 # DURABLE EVIDENCE
 
 The versioned check-execution codec retains the exact *libpkgexec* execution

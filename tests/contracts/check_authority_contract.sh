@@ -25,4 +25,13 @@ grep -q 'execution backend threw non-standard capability evidence' "$executor"
 grep -q 'execution backend threw non-standard execution evidence' "$executor"
 grep -q 'network_policy::denied' "$executor"
 grep -q 'cancellation_policy::disabled()' "$executor"
+grep -F '"PKG_SOURCE_ROOT"' "$executor" >/dev/null
+grep -F '"PKG_PACKAGE_ROOT"' "$executor" >/dev/null
+if grep -R -n 'ZEPPE_LIN_CHECK_' "$root/src" "$root/include" \
+    "$root/tests/integration" "$root/tests/unit" "$root/tests/protocol" \
+    "$root/tests/fixtures" "$root/tests/installed" \
+    "$root/README.md" "$root/DESIGN.md" "$root/TESTING.md" "$root/man" >/dev/null; then
+  echo 'authority-contract: branded check environment ABI resurfaced' >&2
+  exit 1
+fi
 ! grep -R -E 'fork\(|execve\(|waitpid\(' "$root/src" >/dev/null

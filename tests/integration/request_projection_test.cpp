@@ -51,7 +51,12 @@ void prove_exact_projection()
   TEST_CHECK(environment.temporary_directory().string() == "/tmp");
   TEST_CHECK(environment.parallelism() == 1U);
   TEST_CHECK(environment.file_creation_mask() == 0022U);
-  TEST_CHECK(environment.additional_variables().size() == 3U);
+  TEST_CHECK(environment.additional_variables().size() == 2U);
+  TEST_CHECK(environment.additional_variables()[0].name() == "PKG_PACKAGE_ROOT");
+  TEST_CHECK(environment.additional_variables()[0].value() ==
+             "/check/inputs/package");
+  TEST_CHECK(environment.additional_variables()[1].name() == "PKG_SOURCE_ROOT");
+  TEST_CHECK(environment.additional_variables()[1].value() == "/check/source");
 
   const auto& credentials = request.credentials();
   TEST_CHECK(credentials.user_id() == 1000U);

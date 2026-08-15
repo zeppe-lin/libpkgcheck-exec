@@ -76,13 +76,8 @@ std::vector<pkgexec::environment_variable> environment_variables(
     const admitted_check_session& session)
 {
   std::vector<pkgexec::environment_variable> variables;
-  variables.emplace_back(
-      "ZEPPE_LIN_CHECK_PACKAGE",
-      session.request().check_node().package().name());
-  variables.emplace_back("ZEPPE_LIN_CHECK_SOURCE",
-                         std::string(source_path));
-  variables.emplace_back("ZEPPE_LIN_CHECK_ROOT",
-                         std::string(package_path));
+  variables.emplace_back("PKG_SOURCE_ROOT", std::string(source_path));
+  variables.emplace_back("PKG_PACKAGE_ROOT", std::string(package_path));
   return variables;
 }
 

@@ -1,5 +1,15 @@
 # History
 
+Version: 0.6.0
+Date: 2026-08-15
+
+- Normalize the check recipe environment to the common `PKG_*` execution ABI.
+- Export `PKG_SOURCE_ROOT=/check/source` for the exact admitted read-only source
+  resource and `PKG_PACKAGE_ROOT=/check/inputs/package` for the sealed checked
+  package resource.
+- Remove the branded `ZEPPE_LIN_CHECK_*` variables instead of retaining aliases.
+- Keep the public C++ ABI and `libpkgcheck-exec.so.2` generation unchanged.
+
 Version: 0.5.0
 Date: 2026-08-14
 

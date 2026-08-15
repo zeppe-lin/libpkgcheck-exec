@@ -29,3 +29,8 @@ source tree. The shared product must match `abi/libpkgcheck-exec.exports`
 exactly and name the reviewed `libpkgcheck` and `libpkgexec` provider
 generations. Static qualification must use `pkg-config --static` so private
 crypto and thread closure is exercised.
+
+The check-program environment is part of execution policy. Keep
+`PKG_SOURCE_ROOT` and `PKG_PACKAGE_ROOT` semantic meanings stable across build
+and check integration. Do not add distribution-branded aliases or infer an
+unpacked workspace from the admitted source resource.

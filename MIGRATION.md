@@ -1,5 +1,18 @@
 # Migration
 
+## 0.6.0
+
+Check programs now use the common recipe execution environment:
+
+- `PKG_SOURCE_ROOT` replaces `ZEPPE_LIN_CHECK_SOURCE`;
+- `PKG_PACKAGE_ROOT` replaces `ZEPPE_LIN_CHECK_ROOT`;
+- `ZEPPE_LIN_CHECK_PACKAGE` is removed.
+
+No compatibility aliases are exported. The source root still names the exact
+admitted read-only source resource; the package root names the sealed checked
+package resource and working directory. This is an execution-policy change, not
+a public C++ carrier change, so the SONAME remains 2.
+
 ## 0.4.0
 
 The published `libpkgcheck 0.2.0` authority is `libpkgcheck.so.1`. Its public

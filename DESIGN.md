@@ -55,6 +55,18 @@ The logical layout is fixed:
 /tmp                   writable private temporary tree
 ```
 
+The check-program environment names these authorities without phase-specific or
+distribution-branded aliases:
+
+```
+PKG_SOURCE_ROOT=/check/source
+PKG_PACKAGE_ROOT=/check/inputs/package
+```
+
+`PKG_SOURCE_ROOT` is the exact caller-admitted source resource. This adapter
+does not reinterpret it as an unpacked workspace. `PKG_PACKAGE_ROOT` is the
+sealed checked-package resource and working directory.
+
 The checked package is a `build_input_tree`, so it shares the dedicated empty
 `/check/inputs` namespace with logical check inputs.  A process backend owns
 the children of that namespace; the caller-owned root view supplies only the
