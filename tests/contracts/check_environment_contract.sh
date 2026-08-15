@@ -6,33 +6,35 @@ root=${1:?source root required}
 executor=$root/src/executor.cpp
 fail() { echo "environment-contract: $*" >&2; exit 1; }
 
-# The current recipe environment is an exact, fixed two-variable projection.
-grep -F 'pkgexec::environment_policy environment_for()' "$executor" >/dev/null || \
-  fail 'environment projection unexpectedly depends on admitted session state'
-grep -F 'variables.emplace_back("PKG_SOURCE_ROOT", std::string(source_path));' "$executor" >/dev/null || \
-  fail 'PKG_SOURCE_ROOT projection is missing'
-grep -F 'variables.emplace_back("PKG_PACKAGE_ROOT", std::string(package_path));' "$executor" >/dev/null || \
-  fail 'PKG_PACKAGE_ROOT projection is missing'
+# Recipe-facing check dependencies must be addressable by canonical package name,
+# not by an opaque build-input identity that a recipe cannot derive.
+grep -F 'pkgexec::environment_policy environment_for(' "$executor" >/dev/null || \
+  fail 'environment projection is missing'
+grep -F 'const admitted_check_session& session' "$executor" >/dev/null || \
+  fail 'environment projection does not retain admitted check-input authority'
+for variable in PKG_SOURCE_ROOT PKG_PACKAGE_ROOT PKG_CHECK_INPUT_ROOT PKG_CHECK_INPUTS; do
+  grep -F "variables.emplace_back(\"$variable\"" "$executor" >/dev/null || \
+    fail "$variable projection is missing"
+done
 count=$(grep -c 'variables.emplace_back(' "$executor")
-[ "$count" -eq 2 ] || fail "environment projection exports $count variables, expected 2"
+[ "$count" -eq 4 ] || fail "environment projection exports $count variables, expected 4"
 actual_names=$(grep -o '"PKG_[A-Z0-9_]*"' "$executor" | tr -d '"' | sort -u)
-expected_names=$(printf '%s\n' PKG_PACKAGE_ROOT PKG_SOURCE_ROOT)
+expected_names=$(printf '%s\n' PKG_CHECK_INPUTS PKG_CHECK_INPUT_ROOT PKG_PACKAGE_ROOT PKG_SOURCE_ROOT)
 [ "$actual_names" = "$expected_names" ] || \
   fail "unexpected PKG_* environment vocabulary: $actual_names"
 
-for doc in README.md DESIGN.md TESTING.md MAINTAINING.md man/libpkgcheck-exec.7.scdoc; do
-  grep -F 'PKG_SOURCE_ROOT' "$root/$doc" >/dev/null || fail "$doc omits PKG_SOURCE_ROOT"
-  grep -F 'PKG_PACKAGE_ROOT' "$root/$doc" >/dev/null || fail "$doc omits PKG_PACKAGE_ROOT"
-done
+grep -F 'package_input_name(logical)' "$executor" >/dev/null || \
+  fail 'logical check inputs are not projected by package name'
+grep -F 'std::string(input_path_prefix) + name' "$executor" >/dev/null || \
+  fail 'check-input mount path is not package-addressable'
+grep -F 'constexpr std::string_view package_path = "/check/inputs/_package";' "$executor" >/dev/null || \
+  fail 'checked package does not use the reserved non-package child'
 
-grep -F 'session-independent' "$root/README.md" >/dev/null || \
-  fail 'README does not state session-independent environment authority'
-grep -F 'session-independent' "$root/MAINTAINING.md" >/dev/null || \
-  fail 'MAINTAINING does not protect session-independent environment authority'
-grep -F 'identity convenience variables are not part of this execution ABI' "$root/DESIGN.md" >/dev/null || \
-  fail 'DESIGN does not exclude package identity convenience variables'
-grep -F 'package identity convenience variables' "$root/man/libpkgcheck-exec.7.scdoc" >/dev/null || \
-  fail 'manual does not exclude package identity convenience variables'
+for doc in README.md DESIGN.md TESTING.md MAINTAINING.md man/libpkgcheck-exec.7.scdoc; do
+  for variable in PKG_SOURCE_ROOT PKG_PACKAGE_ROOT PKG_CHECK_INPUT_ROOT PKG_CHECK_INPUTS; do
+    grep -F "$variable" "$root/$doc" >/dev/null || fail "$doc omits $variable"
+  done
+done
 
 if grep -R -n 'ZEPPE_LIN_CHECK_' \
     "$root/src" "$root/include" "$root/tests/integration" "$root/tests/unit" \

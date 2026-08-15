@@ -51,12 +51,17 @@ void prove_exact_projection()
   TEST_CHECK(environment.temporary_directory().string() == "/tmp");
   TEST_CHECK(environment.parallelism() == 1U);
   TEST_CHECK(environment.file_creation_mask() == 0022U);
-  TEST_CHECK(environment.additional_variables().size() == 2U);
-  TEST_CHECK(environment.additional_variables()[0].name() == "PKG_PACKAGE_ROOT");
-  TEST_CHECK(environment.additional_variables()[0].value() ==
-             "/check/inputs/package");
-  TEST_CHECK(environment.additional_variables()[1].name() == "PKG_SOURCE_ROOT");
-  TEST_CHECK(environment.additional_variables()[1].value() == "/check/source");
+  TEST_CHECK(environment.additional_variables().size() == 4U);
+  TEST_CHECK(environment.additional_variables()[0].name() == "PKG_CHECK_INPUTS");
+  TEST_CHECK(environment.additional_variables()[0].value() == "tester");
+  TEST_CHECK(environment.additional_variables()[1].name() ==
+             "PKG_CHECK_INPUT_ROOT");
+  TEST_CHECK(environment.additional_variables()[1].value() == "/check/inputs");
+  TEST_CHECK(environment.additional_variables()[2].name() == "PKG_PACKAGE_ROOT");
+  TEST_CHECK(environment.additional_variables()[2].value() ==
+             "/check/inputs/_package");
+  TEST_CHECK(environment.additional_variables()[3].name() == "PKG_SOURCE_ROOT");
+  TEST_CHECK(environment.additional_variables()[3].value() == "/check/source");
 
   const auto& credentials = request.credentials();
   TEST_CHECK(credentials.user_id() == 1000U);
@@ -92,21 +97,71 @@ void prove_exact_bindings()
   const auto& package = request.resources().binding(package_slot);
   TEST_CHECK(package.resource() == session.package().tree);
   TEST_CHECK(package.access() == pkgexec::resource_access::read_only);
-  TEST_CHECK(package.mount_point().string() == "/check/inputs/package");
+  TEST_CHECK(package.mount_point().string() == "/check/inputs/_package");
 
   const auto& temporary = request.resources().binding(temporary_slot);
   TEST_CHECK(temporary.access() == pkgexec::resource_access::writable);
   TEST_CHECK(temporary.mount_point().string() == "/tmp");
 
   for (const auto& input : session.inputs()) {
+    const auto found = std::find_if(
+        session.request().inputs().inputs().begin(),
+        session.request().inputs().inputs().end(),
+        [&](const auto& logical) { return logical.identity() == input.input; });
+    TEST_CHECK(found != session.request().inputs().inputs().end());
+    const auto name = found->package().name();
     const auto slot = pkgexec::resource_slot::named(
-        pkgexec::resource_role::check_input_tree, input.input.hex());
+        pkgexec::resource_role::check_input_tree, name);
     const auto& binding = request.resources().binding(slot);
     TEST_CHECK(binding.resource() == input.resource);
     TEST_CHECK(binding.access() == pkgexec::resource_access::read_only);
-    TEST_CHECK(binding.mount_point().string() ==
-               "/check/inputs/" + input.input.hex());
+    TEST_CHECK(binding.mount_point().string() == "/check/inputs/" + name);
   }
+}
+
+void prove_multi_input_recipe_coordinates()
+{
+  auto scenario = check_fixture::make_multi_input_scenario();
+  auto build = check_fixture::successful_multi_input_build(scenario);
+  auto request = pkgcheck::check_request::seal(
+      scenario.transaction,
+      check_fixture::node(
+          scenario.transaction,
+          pkgtransaction::transaction_action_kind::check).identity(),
+      build);
+
+  std::vector<pkgcheck_exec::package_input_resource> resources;
+  char seed = '4';
+  for (const auto& input : request.inputs().inputs()) {
+    resources.push_back({
+        input.identity(),
+        pkgexec::resource_identity::from_sha256(
+            execution_fixture::hex(seed++)),
+        "/trees/input/" + input.package().name(),
+    });
+  }
+  const auto session = execution_fixture::multi_input_session(
+      request, scenario, build, std::move(resources));
+  const auto projected = pkgcheck_exec::seal_execution_request(session);
+
+  std::string expected_names;
+  for (const auto& input : request.inputs().inputs()) {
+    if (!expected_names.empty())
+      expected_names.push_back(':');
+    expected_names += input.package().name();
+
+    const auto slot = pkgexec::resource_slot::named(
+        pkgexec::resource_role::check_input_tree, input.package().name());
+    TEST_CHECK(projected.resources().binding(slot).mount_point().string() ==
+               "/check/inputs/" + input.package().name());
+  }
+
+  const auto& variables = projected.environment().additional_variables();
+  const auto names = std::find_if(
+      variables.begin(), variables.end(),
+      [](const auto& value) { return value.name() == "PKG_CHECK_INPUTS"; });
+  TEST_CHECK(names != variables.end());
+  TEST_CHECK(names->value() == expected_names);
 }
 
 void prove_host_coordinates_are_not_semantic()
@@ -169,6 +224,7 @@ int main()
   try {
     prove_exact_projection();
     prove_exact_bindings();
+    prove_multi_input_recipe_coordinates();
     prove_host_coordinates_are_not_semantic();
     prove_adapter_resource_collision_is_pure_refusal();
     prove_semantic_changes_change_identity();

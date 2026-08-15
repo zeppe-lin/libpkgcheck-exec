@@ -32,9 +32,9 @@ crypto and thread closure is exercised.
 
 The check-program environment is part of execution policy. Keep
 `PKG_SOURCE_ROOT` and `PKG_PACKAGE_ROOT` semantic meanings stable across build
-and check integration. Its current projection is deliberately
-session-independent: do not add package identity convenience variables merely
-because an admitted session can provide them. Do not add distribution-branded
-aliases or infer an unpacked workspace from the admitted source resource. The
-environment contract must pin both the source projection and these documentation
-claims before release.
+and check integration. Check dependencies must remain recipe-addressable by
+canonical package name through `PKG_CHECK_INPUT_ROOT` and `PKG_CHECK_INPUTS`;
+do not expose opaque `build_input_identity` text as a recipe pathname contract.
+Do not add distribution-branded aliases or infer an unpacked workspace from the
+admitted source resource. The environment contract must pin these projections
+and documentation claims before release.

@@ -19,11 +19,13 @@ concrete resource identity. Credential groups are normalized before execution re
 `seal_execution_request()` reproduces that request without touching host
 resources; `prepare()` adds only the call-scoped materialization bindings.
 
-Check programs receive one fixed, session-independent `PKG_*` recipe
-environment: `PKG_SOURCE_ROOT` names the exact admitted source resource at
-`/check/source`, and `PKG_PACKAGE_ROOT` names the sealed checked package at
-`/check/inputs/package`. The adapter exports no package identity convenience
-variables and no distribution-branded check aliases.
+Check programs receive the common `PKG_*` recipe environment.
+`PKG_SOURCE_ROOT=/check/source` names the exact admitted source resource and
+`PKG_PACKAGE_ROOT=/check/inputs/_package` names the sealed checked package.
+`PKG_CHECK_INPUT_ROOT=/check/inputs` names the check-input namespace, whose
+children use canonical package names, and `PKG_CHECK_INPUTS` lists those names
+in sealed request order. The reserved `_package` child cannot collide with a
+canonical package name. No distribution-branded check aliases are exported.
 
 The library does not compose transactions, build packages, acquire or unpack
 artifacts, materialize package inputs, select interpreters, implement a process

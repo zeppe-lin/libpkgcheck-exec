@@ -21,8 +21,9 @@ namespace pkgcheck_exec {
 namespace {
 
 constexpr std::string_view source_path = "/check/source";
-constexpr std::string_view package_path = "/check/inputs/package";
+constexpr std::string_view package_path = "/check/inputs/_package";
 constexpr std::string_view input_path_prefix = "/check/inputs/";
+constexpr std::string_view check_input_root = "/check/inputs";
 constexpr std::string_view temporary_path = "/tmp";
 constexpr std::string_view home_path = "/tmp/home";
 
@@ -72,15 +73,54 @@ pkgexec::resource_identity temporary_resource_identity(
   return pkgexec::resource_identity::from_sha256(sha256_hex(material));
 }
 
-std::vector<pkgexec::environment_variable> environment_variables()
+std::string package_input_name(const pkgbuild::build_input& input)
+{
+  return input.package().name();
+}
+
+const pkgbuild::build_input& require_check_input(
+    const admitted_check_session& session,
+    const pkgbuild::build_input_identity& identity)
+{
+  const pkgbuild::build_input* found = nullptr;
+  for (const auto& input : session.request().inputs().inputs()) {
+    if (input.identity() != identity)
+      continue;
+    if (found != nullptr)
+      throw error(error_code::invalid_session,
+                  "check request duplicates a logical input identity");
+    found = &input;
+  }
+  if (found == nullptr)
+    throw error(error_code::invalid_session,
+                "admitted check input lacks logical request authority");
+  return *found;
+}
+
+std::string join_input_names(const admitted_check_session& session)
+{
+  std::string value;
+  for (const auto& input : session.request().inputs().inputs()) {
+    if (!value.empty())
+      value.push_back(':');
+    value += package_input_name(input);
+  }
+  return value;
+}
+
+std::vector<pkgexec::environment_variable> environment_variables(
+    const admitted_check_session& session)
 {
   std::vector<pkgexec::environment_variable> variables;
   variables.emplace_back("PKG_SOURCE_ROOT", std::string(source_path));
   variables.emplace_back("PKG_PACKAGE_ROOT", std::string(package_path));
+  variables.emplace_back("PKG_CHECK_INPUT_ROOT", std::string(check_input_root));
+  variables.emplace_back("PKG_CHECK_INPUTS", join_input_names(session));
   return variables;
 }
 
-pkgexec::environment_policy environment_for()
+pkgexec::environment_policy environment_for(
+    const admitted_check_session& session)
 {
   using namespace pkgexec;
 
@@ -95,7 +135,7 @@ pkgexec::environment_policy environment_for()
       stdin_policy::closed,
       stream_policy::capture_complete,
       stream_policy::capture_complete,
-      environment_variables());
+      environment_variables(session));
 }
 
 pkgexec::credential_policy credentials_for(
@@ -193,13 +233,13 @@ pkgexec::execution_request seal_execution_request(
       logical_path::parse(temporary_path));
 
   for (const auto& input : session.inputs()) {
+    const auto& logical = require_check_input(session, input.input);
+    const auto name = package_input_name(logical);
     bindings.emplace_back(
-        resource_slot::named(resource_role::check_input_tree,
-                             input.input.hex()),
+        resource_slot::named(resource_role::check_input_tree, name),
         input.resource,
         resource_access::read_only,
-        logical_path::parse(
-            std::string(input_path_prefix) + input.input.hex()));
+        logical_path::parse(std::string(input_path_prefix) + name));
   }
 
   auto layout = resource_layout::seal(std::move(bindings), package_slot);
@@ -209,7 +249,7 @@ pkgexec::execution_request seal_execution_request(
       session.identity().interpreter,
       session.paths().root_view,
       std::move(layout),
-      environment_for(),
+      environment_for(session),
       credentials_for(session),
       session.limits(),
       cancellation_policy::disabled());

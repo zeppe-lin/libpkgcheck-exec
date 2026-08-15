@@ -1,5 +1,19 @@
 # Migration
 
+## 0.7.0
+
+Check-input execution is now recipe-addressable by canonical package name.
+`PKG_CHECK_INPUT_ROOT=/check/inputs` and `PKG_CHECK_INPUTS` are exported; each
+check dependency is mounted at `$PKG_CHECK_INPUT_ROOT/<package-name>`. The
+checked package moves from `/check/inputs/package` to the reserved
+`/check/inputs/_package` child so a real package named `package` cannot collide
+with a dependency mount.
+
+This changes semantic execution-request identity but not the public C++ carrier
+layout, so the SONAME remains 2. Existing private execution evidence from 0.6
+is not reconstructed through compatibility aliases; reopen requires the exact
+old request authority.
+
 ## 0.6.0
 
 Check programs now use the common recipe execution environment:

@@ -1,5 +1,16 @@
 # History
 
+Version: 0.7.0
+Date: 2026-08-15
+
+- Mount logical check inputs by canonical package name instead of opaque
+  `build_input_identity` text so recipe check programs can consume them.
+- Export `PKG_CHECK_INPUT_ROOT=/check/inputs` and deterministic
+  `PKG_CHECK_INPUTS`; reserve `/check/inputs/_package` for the checked package.
+- Keep exact logical-input admission by `build_input_identity`; only the
+  recipe-facing logical coordinate changes.
+- Keep the public C++ ABI and `libpkgcheck-exec.so.2` generation unchanged.
+
 Version: 0.6.0
 Date: 2026-08-15
 

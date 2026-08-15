@@ -30,11 +30,12 @@ and mutually disjoint after lexical normalization. Distinct admitted semantic
 resources must not share one concrete resource identity. The root-view path is
 a separate namespace coordinate and may be the filesystem root.
 
-Check programs receive the fixed, session-independent
-*PKG_SOURCE_ROOT=/check/source* for the exact admitted read-only source resource
-and *PKG_PACKAGE_ROOT=/check/inputs/package* for the sealed checked package. No
-package identity convenience variables or distribution-branded check aliases
-are exported.
+Check programs receive *PKG_SOURCE_ROOT=/check/source* for the exact admitted
+read-only source resource and *PKG_PACKAGE_ROOT=/check/inputs/\_package* for the
+sealed checked package. *PKG_CHECK_INPUT_ROOT=/check/inputs* names the logical
+check-input namespace and *PKG_CHECK_INPUTS* lists its canonical package-name
+children in sealed request order. Recipes do not consume opaque build-input
+identities as path names. No distribution-branded check aliases are exported.
 
 # DURABLE EVIDENCE
 
