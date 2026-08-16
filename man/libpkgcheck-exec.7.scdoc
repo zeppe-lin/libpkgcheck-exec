@@ -34,7 +34,8 @@ Check programs receive *PKG_SOURCE_ROOT=/check/source* for the exact admitted
 read-only source resource and *PKG_PACKAGE_ROOT=/check/package* for the
 sealed checked package. *PKG_CHECK_INPUT_ROOT=/check/inputs* names the logical
 check-input namespace and *PKG_CHECK_INPUTS* lists its canonical package-name
-children in sealed request order. Recipes do not consume opaque build-input
+children in sealed request order. *PKG_JOBS* projects the parallelism already
+admitted by the checked build policy. Recipes do not consume opaque build-input
 identities as path names. No distribution-branded check aliases are exported.
 
 # DURABLE EVIDENCE

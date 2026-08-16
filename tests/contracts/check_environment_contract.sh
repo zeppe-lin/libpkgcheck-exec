@@ -12,16 +12,17 @@ grep -F 'pkgexec::environment_policy environment_for(' "$executor" >/dev/null ||
   fail 'environment projection is missing'
 grep -F 'const admitted_check_session& session' "$executor" >/dev/null || \
   fail 'environment projection does not retain admitted check-input authority'
-for variable in PKG_SOURCE_ROOT PKG_PACKAGE_ROOT PKG_CHECK_INPUT_ROOT PKG_CHECK_INPUTS; do
-  grep -F "variables.emplace_back(\"$variable\"" "$executor" >/dev/null || \
-    fail "$variable projection is missing"
-done
-count=$(grep -c 'variables.emplace_back(' "$executor")
-[ "$count" -eq 4 ] || fail "environment projection exports $count variables, expected 4"
-actual_names=$(grep -o '"PKG_[A-Z0-9_]*"' "$executor" | tr -d '"' | LC_ALL=C sort -u)
-expected_names=$(printf '%s\n' PKG_CHECK_INPUTS PKG_CHECK_INPUT_ROOT PKG_PACKAGE_ROOT PKG_SOURCE_ROOT | LC_ALL=C sort -u)
+expected_names=$(printf '%s\n' \
+  PKG_CHECK_INPUTS \
+  PKG_CHECK_INPUT_ROOT \
+  PKG_JOBS \
+  PKG_PACKAGE_ROOT \
+  PKG_SOURCE_ROOT | LC_ALL=C sort)
+actual_names=$(sed -n \
+  's/.*variables\.emplace_back("\([A-Z0-9_]*\)".*/\1/p' \
+  "$executor" | LC_ALL=C sort)
 [ "$actual_names" = "$expected_names" ] || \
-  fail "unexpected PKG_* environment vocabulary: $actual_names"
+  fail "unexpected recipe environment vocabulary: $actual_names"
 
 grep -F 'package_input_name(logical)' "$executor" >/dev/null || \
   fail 'logical check inputs are not projected by package name'
@@ -35,7 +36,7 @@ grep -F 'constexpr std::string_view package_path = "/check/package";' "$executor
   fail 'checked package does not use its phase-local subject path'
 
 for doc in README.md DESIGN.md TESTING.md MAINTAINING.md man/libpkgcheck-exec.7.scdoc; do
-  for variable in PKG_SOURCE_ROOT PKG_PACKAGE_ROOT PKG_CHECK_INPUT_ROOT PKG_CHECK_INPUTS; do
+  for variable in PKG_SOURCE_ROOT PKG_PACKAGE_ROOT PKG_CHECK_INPUT_ROOT PKG_CHECK_INPUTS PKG_JOBS; do
     grep -F "$variable" "$root/$doc" >/dev/null || fail "$doc omits $variable"
   done
 done

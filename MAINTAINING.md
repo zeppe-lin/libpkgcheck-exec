@@ -34,7 +34,9 @@ The check-program environment is part of execution policy. Keep
 `PKG_SOURCE_ROOT` and `PKG_PACKAGE_ROOT` semantic meanings stable across build
 and check integration. Check dependencies must remain recipe-addressable by
 canonical package name through `PKG_CHECK_INPUT_ROOT` and `PKG_CHECK_INPUTS`;
-do not expose opaque `build_input_identity` text as a recipe pathname contract.
+`PKG_JOBS` must project the parallelism already admitted by the build policy,
+not a check-local choice. Do not expose opaque `build_input_identity` text as
+a recipe pathname contract.
 Do not add distribution-branded aliases or infer an unpacked workspace from the
 admitted source resource. The environment contract must pin these projections
 and documentation claims before release.
