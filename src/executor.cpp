@@ -111,11 +111,14 @@ std::string join_input_names(const admitted_check_session& session)
 std::vector<pkgexec::environment_variable> environment_variables(
     const admitted_check_session& session)
 {
+  const auto& policy =
+      session.request().build().request().policy().environment();
   std::vector<pkgexec::environment_variable> variables;
   variables.emplace_back("PKG_SOURCE_ROOT", std::string(source_path));
   variables.emplace_back("PKG_PACKAGE_ROOT", std::string(package_path));
   variables.emplace_back("PKG_CHECK_INPUT_ROOT", std::string(check_input_root));
   variables.emplace_back("PKG_CHECK_INPUTS", join_input_names(session));
+  variables.emplace_back("PKG_JOBS", std::to_string(policy.parallelism()));
   return variables;
 }
 
@@ -124,13 +127,15 @@ pkgexec::environment_policy environment_for(
 {
   using namespace pkgexec;
 
+  const auto& policy =
+      session.request().build().request().policy().environment();
   return environment_policy::hermetic(
       {logical_path::parse("/usr/bin"), logical_path::parse("/bin")},
       logical_path::parse(home_path),
       logical_path::parse(temporary_path),
-      1,
-      0022,
-      std::nullopt,
+      policy.parallelism(),
+      policy.file_creation_mask(),
+      policy.source_date_epoch(),
       network_policy::denied,
       stdin_policy::closed,
       stream_policy::capture_complete,

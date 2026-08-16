@@ -35,3 +35,18 @@ if grep -R -n 'ZEPPE_LIN_CHECK_' "$root/src" "$root/include" \
   exit 1
 fi
 ! grep -R -E 'fork\(|execve\(|waitpid\(' "$root/src" >/dev/null
+for required in \
+  'session.request().build().request().policy().environment()' \
+  'policy.parallelism()' \
+  'policy.file_creation_mask()' \
+  'policy.source_date_epoch()' \
+  'variables.emplace_back("PKG_JOBS", std::to_string(policy.parallelism()))'; do
+  grep -F -- "$required" "$executor" >/dev/null || {
+    echo "check environment omits admitted build policy authority: $required" >&2
+    exit 1
+  }
+done
+if grep -E '^[[:space:]]+1,[[:space:]]*$|^[[:space:]]+0022,[[:space:]]*$' "$executor" >/dev/null; then
+  echo 'check executor regained a private hard-coded build environment field' >&2
+  exit 1
+fi

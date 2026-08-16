@@ -9,6 +9,8 @@
 #include <libpkgcheck/libpkgcheck.h>
 
 #include <algorithm>
+#include <cstdint>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -95,7 +97,9 @@ inline const pkgtransaction::transaction_node& node(
 
 inline pkgbuild::build_request request(
     const pkgtransaction::transaction_program& transaction,
-    std::uint32_t parallelism = 2)
+    std::uint32_t parallelism = 2,
+    std::uint32_t file_creation_mask = 0022,
+    std::optional<std::int64_t> source_date_epoch = 1700000000)
 {
   const auto& build = node(
       transaction, pkgtransaction::transaction_action_kind::build);
@@ -105,7 +109,7 @@ inline pkgbuild::build_request request(
       transaction.request().resolution(), build.selection()->identity(),
       pkgbuild::build_policy::make(
           pkgbuild::environment_policy::hermetic(
-              parallelism, 0022, 1700000000)));
+              parallelism, file_creation_mask, source_date_epoch)));
 }
 
 inline pkgbuild::build_result successful_build(

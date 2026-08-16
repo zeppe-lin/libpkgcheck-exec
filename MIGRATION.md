@@ -1,5 +1,11 @@
 # Migration
 
+## 0.9.0
+
+Check programs now inherit the exact environment policy retained by their build
+result. `PKG_JOBS` is available during CHECK, and the admitted umask and
+`SOURCE_DATE_EPOCH` are preserved. Callers do not supply a new check policy.
+
 ## 0.8.0
 
 The package under test is now a distinct singleton execution subject.

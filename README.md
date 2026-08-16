@@ -19,7 +19,11 @@ concrete resource identity. Credential groups are normalized before execution re
 `seal_execution_request()` reproduces that request without touching host
 resources; `prepare()` adds only the call-scoped materialization bindings.
 
-Check programs receive the common `PKG_*` recipe environment.
+Check programs receive the common `PKG_*` recipe environment under the exact
+build environment policy retained by their admitted `pkgbuild::build_result`.
+Parallelism, file-creation mask, and source-date epoch are therefore inherited
+from the build request rather than reselected by the check adapter; `PKG_JOBS`
+projects the same admitted parallelism into the recipe vocabulary.
 `PKG_SOURCE_ROOT=/check/source` names the exact admitted source resource and
 `PKG_PACKAGE_ROOT=/check/package` names the sealed checked package subject.
 `PKG_CHECK_INPUT_ROOT=/check/inputs` names the check-input namespace, whose

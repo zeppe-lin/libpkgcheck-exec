@@ -1,5 +1,14 @@
 # History
 
+Version: 0.9.0
+Date: 2026-08-16
+
+- Consume the exact environment policy retained by the checked build result.
+  Check execution no longer hard-codes parallelism 1, umask 0022, or an absent
+  source-date epoch; it projects admitted parallelism as `PKG_JOBS` and carries
+  the build policy's mask and epoch into the sealed execution request.
+- Keep the public C++ ABI and `libpkgcheck-exec.so.2` generation unchanged.
+
 Version: 0.8.0
 Date: 2026-08-15
 

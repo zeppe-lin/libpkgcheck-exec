@@ -31,7 +31,8 @@ struct admission_fixture final {
 inline admission_fixture single_input_fixture()
 {
   auto scenario = check_fixture::make_scenario();
-  auto build = check_fixture::successful_build(scenario.transaction);
+  auto build = check_fixture::successful_build(
+      check_fixture::request(scenario.transaction, 3, 0027, 1700000000));
   auto request = pkgcheck::check_request::seal(
       scenario.transaction,
       check_fixture::node(

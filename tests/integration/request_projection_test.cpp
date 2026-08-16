@@ -40,6 +40,9 @@ void prove_exact_projection()
                  pkgexec::resource_role::package_tree));
 
   const auto& environment = request.environment();
+  TEST_CHECK(environment.locale() == pkgexec::locale_policy::c_utf8);
+  TEST_CHECK(environment.timezone() == pkgexec::timezone_policy::utc);
+  TEST_CHECK(environment.home() == pkgexec::home_policy::isolated);
   TEST_CHECK(environment.network() == pkgexec::network_policy::denied);
   TEST_CHECK(environment.standard_input() == pkgexec::stdin_policy::closed);
   TEST_CHECK(environment.standard_output() ==
@@ -48,19 +51,22 @@ void prove_exact_projection()
              pkgexec::stream_policy::capture_complete);
   TEST_CHECK(environment.home_directory().string() == "/tmp/home");
   TEST_CHECK(environment.temporary_directory().string() == "/tmp");
-  TEST_CHECK(environment.parallelism() == 1U);
-  TEST_CHECK(environment.file_creation_mask() == 0022U);
-  TEST_CHECK(environment.additional_variables().size() == 4U);
+  TEST_CHECK(environment.parallelism() == 3U);
+  TEST_CHECK(environment.file_creation_mask() == 0027U);
+  TEST_CHECK(environment.source_date_epoch() == 1700000000);
+  TEST_CHECK(environment.additional_variables().size() == 5U);
   TEST_CHECK(environment.additional_variables()[0].name() == "PKG_CHECK_INPUTS");
   TEST_CHECK(environment.additional_variables()[0].value() == "tester");
   TEST_CHECK(environment.additional_variables()[1].name() ==
              "PKG_CHECK_INPUT_ROOT");
   TEST_CHECK(environment.additional_variables()[1].value() == "/check/inputs");
-  TEST_CHECK(environment.additional_variables()[2].name() == "PKG_PACKAGE_ROOT");
-  TEST_CHECK(environment.additional_variables()[2].value() ==
+  TEST_CHECK(environment.additional_variables()[2].name() == "PKG_JOBS");
+  TEST_CHECK(environment.additional_variables()[2].value() == "3");
+  TEST_CHECK(environment.additional_variables()[3].name() == "PKG_PACKAGE_ROOT");
+  TEST_CHECK(environment.additional_variables()[3].value() ==
              "/check/package");
-  TEST_CHECK(environment.additional_variables()[3].name() == "PKG_SOURCE_ROOT");
-  TEST_CHECK(environment.additional_variables()[3].value() == "/check/source");
+  TEST_CHECK(environment.additional_variables()[4].name() == "PKG_SOURCE_ROOT");
+  TEST_CHECK(environment.additional_variables()[4].value() == "/check/source");
 
   const auto& credentials = request.credentials();
   TEST_CHECK(credentials.user_id() == 1000U);

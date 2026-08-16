@@ -55,7 +55,10 @@ The logical layout is fixed:
 /tmp                    writable private temporary tree
 ```
 
-The check-program environment names these authorities without phase-specific or
+The check-program environment consumes the exact environment policy already
+sealed in `session.request().build().request().policy()`. The adapter does not
+invent a second check-only parallelism, umask, or source-date epoch. It names
+that admitted policy and the check authorities without phase-specific or
 distribution-branded aliases:
 
 ```
@@ -63,6 +66,7 @@ PKG_SOURCE_ROOT=/check/source
 PKG_PACKAGE_ROOT=/check/package
 PKG_CHECK_INPUT_ROOT=/check/inputs
 PKG_CHECK_INPUTS=<colon-separated canonical package names>
+PKG_JOBS=<admitted build-policy parallelism>
 ```
 
 `PKG_SOURCE_ROOT` is the exact caller-admitted source resource. This adapter

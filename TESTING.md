@@ -20,8 +20,11 @@ resource identities.
 Request-projection tests prove exact check purpose, program/interpreter/root
 authority, read-only source/package/input bindings, the writable private
 temporary root, exact `PKG_SOURCE_ROOT`, `PKG_PACKAGE_ROOT`,
-`PKG_CHECK_INPUT_ROOT`, and `PKG_CHECK_INPUTS` environment projection,
-package-name-addressable check-input mounts, absence of branded check aliases,
+`PKG_CHECK_INPUT_ROOT`, `PKG_CHECK_INPUTS`, and `PKG_JOBS` environment
+projection, package-name-addressable check-input mounts, and one distinctive
+whole-policy witness proving that parallelism, umask, and source-date epoch are
+recovered from the admitted build result rather than hard-coded by the check
+adapter. The same projection also proves absence of branded check aliases,
 closed I/O, denied networking, exact credentials and limits, and that the
 current adapter deliberately seals cancellation as disabled. Host
 materialization paths do not contaminate semantic request identity. An
